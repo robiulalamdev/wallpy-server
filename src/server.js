@@ -7,7 +7,7 @@ const PORT = VARIABLES.PORT || 8000;
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(VARIABLES.DATABASE_URL, {
+    await mongoose.connect(process.env.DATABASE_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
