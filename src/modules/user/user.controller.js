@@ -376,6 +376,34 @@ const updatePassword = async (req, res) => {
   }
 };
 
+const getUserInfo = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoById(req.user?._id);
+    if (isExistUser) {
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "User Retrieve Success",
+        data: isExistUser,
+      });
+    } else {
+      return res.status(404).json({
+        status: 404,
+        success: false,
+        message: "User not Found!",
+        data: null,
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Retrieve Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -384,4 +412,5 @@ module.exports = {
   verifyResetPasswordToken,
   changePassword,
   updatePassword,
+  getUserInfo,
 };

@@ -7,6 +7,7 @@ const {
   verifyResetPasswordToken,
   changePassword,
   updatePassword,
+  getUserInfo,
 } = require("./user.controller");
 const { isAuth } = require("../../middlewares/auth");
 const router = express.Router();
@@ -14,6 +15,7 @@ const router = express.Router();
 router.post("/signup", createUser);
 router.post("/email-verify/:token", verifyEmail);
 router.post("/login", loginUser);
+router.get("/me", isAuth, getUserInfo);
 
 // reset password with email
 router.post("/reset-password", resetPassword);
