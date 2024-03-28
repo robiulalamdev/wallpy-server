@@ -14,6 +14,7 @@ const {
   createNewUser,
   getUserWithPassword,
   getUserInfoById,
+  getUserByUsername,
 } = require("./user.service");
 const bcrcypt = require("bcryptjs");
 
@@ -172,6 +173,7 @@ const loginUser = async (req, res) => {
   }
 };
 
+// forgot password step 1
 const resetPassword = async (req, res) => {
   try {
     const isExistUser = await getUser(req.body.email);
@@ -205,6 +207,7 @@ const resetPassword = async (req, res) => {
   }
 };
 
+// forgot password step 2
 const verifyResetPasswordToken = async (req, res) => {
   try {
     const tokenUser = await decodeToken(req.params.token);
@@ -242,6 +245,7 @@ const verifyResetPasswordToken = async (req, res) => {
   }
 };
 
+// forgot password step 3
 const changePassword = async (req, res) => {
   try {
     const isExistUser = await getUser(req.body.email);
@@ -289,6 +293,89 @@ const changePassword = async (req, res) => {
   }
 };
 
+// forgot password step 1
+// const forgotEmail = async (req, res) => {
+//   try {
+//     const isExistUser = await getUserByUsername(req.body.email);
+//     if (isExistUser) {
+//       const token = await generateVerifyToken({
+//         email: isExistUser?.email,
+//         username: isExistUser?.username,
+//         _id: isExistUser?._id,
+//       });
+//       await sendForgotPasswordMail(isExistUser, token);
+//       res.status(200).json({
+//         status: 200,
+//         success: true,
+//         message: "Please check your email, and Reset Your Password",
+//       });
+//     } else {
+//       return res.status(404).json({
+//         status: 404,
+//         success: false,
+//         type: "email",
+//         message: "User not Found!",
+//       });
+//     }
+//   } catch (error) {
+//     res.status(201).json({
+//       status: 201,
+//       success: false,
+//       message: "Operation Failed!",
+//       error_message: error.message,
+//     });
+//   }
+// };
+
+const updatePassword = async (req, res) => {
+  try {
+    const isExistUser = await getUserWithPassword(req.user?.email);
+    if (isExistUser) {
+      if (
+        bcrcypt.compareSync(req.body.current_password, isExistUser.password)
+      ) {
+        const result = await User.findByIdAndUpdate(
+          {
+            _id: isExistUser?._id.toString(),
+          },
+          {
+            $set: {
+              password: bcrcypt.hashSync(req.body.new_password),
+            },
+          },
+          { new: false }
+        );
+        res.status(200).json({
+          status: 200,
+          success: true,
+          message: "Password Changed Success",
+        });
+      } else {
+        return res.status(201).json({
+          status: 201,
+          success: false,
+          type: "password",
+          message: "Incorrect Password",
+        });
+      }
+    } else {
+      return res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Login Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -296,4 +383,5 @@ module.exports = {
   resetPassword,
   verifyResetPasswordToken,
   changePassword,
+  updatePassword,
 };

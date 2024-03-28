@@ -6,7 +6,9 @@ const {
   resetPassword,
   verifyResetPasswordToken,
   changePassword,
+  updatePassword,
 } = require("./user.controller");
+const { isAuth } = require("../../middlewares/auth");
 const router = express.Router();
 
 router.post("/signup", createUser);
@@ -17,5 +19,8 @@ router.post("/login", loginUser);
 router.post("/reset-password", resetPassword);
 router.post("/verify-reset-password/:token", verifyResetPasswordToken);
 router.post("/change-password/", changePassword);
+
+// change password with auth token after login
+router.patch("/update-password/", isAuth, updatePassword);
 
 module.exports = { userRoutes: router };

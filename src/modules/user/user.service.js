@@ -18,6 +18,11 @@ const getUser = async (email) => {
   return result;
 };
 
+const getUserByUsername = async (username) => {
+  const result = await User.findOne({ username: username });
+  return result;
+};
+
 const getUserWithPassword = async (email) => {
   const result = await User.findOne({ email: email }).select("+password");
   return result;
@@ -39,4 +44,5 @@ module.exports = {
   getUserWithPassword,
   getUsername,
   getUserInfoById,
+  getUserByUsername,
 };

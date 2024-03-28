@@ -21,6 +21,12 @@ const userSchema = new Schema(
       select: false,
       required: true,
     },
+    role: {
+      type: String,
+      enum: ["Admin", "User"],
+      default: "User",
+      required: true,
+    },
     verified: {
       type: Boolean,
       enum: [true, false],
@@ -37,6 +43,16 @@ const userSchema = new Schema(
       type: Boolean,
       enum: [true, false],
       default: false,
+      required: false,
+    },
+    reset_email: {
+      type: Boolean,
+      enum: [true, false],
+      default: false,
+      required: false,
+    },
+    warnings: {
+      type: String,
       required: false,
     },
   },
