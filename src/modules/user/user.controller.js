@@ -127,11 +127,12 @@ const loginUser = async (req, res) => {
             verified: isExistUser?.verified,
             _id: isExistUser?._id,
           });
+          const user = await getUserInfoById(isExistUser?._id?.toString());
           return res.status(200).json({
             status: 200,
             success: true,
             message: "User Login Success",
-            data: { accessToken: accessToken },
+            data: { accessToken: accessToken, user: user },
           });
         } else {
           return res.status(201).json({
