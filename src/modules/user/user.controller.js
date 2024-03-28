@@ -1,19 +1,95 @@
+const { generateVerifyToken, decodeToken } = require("../../helpers/jwtHelper");
+const { sendVerifyEmail } = require("../../helpers/sendEmailHelper");
 const User = require("./user.model");
-const { getUsername, getUser } = require("./user.service");
+const { getUsername, getUser, createNewUser } = require("./user.service");
 
 const createUser = async (req, res) => {
   try {
     const isExistUser = await getUser(req.body.email);
-    const isExistUsername = await getUsername(req.body.username);
-    console.log(isExistUser);
-    // req.body["name"] = req.body.email.split("@")[0];
-    // const newUser = new User(req.body);
-    // const result = await newUser.save();
-    res.status(200).json({
-      status: 200,
-      success: true,
-      message: "User Create Success",
+    if (isExistUser) {
+      if (isExistUser?.verified) {
+        res.status(201).json({
+          status: 201,
+          success: false,
+          message: "Email already in use",
+        });
+      } else {
+        const token = await generateVerifyToken({
+          email: isExistUser?.email,
+          username: isExistUser?.username,
+          _id: isExistUser?._id,
+        });
+        await sendVerifyEmail(isExistUser, token);
+        res.status(200).json({
+          status: 200,
+          success: true,
+          message:
+            "This Email have an account and account is unverified. Please check your email, and verify your email address",
+        });
+      }
+    } else {
+      const isExistUsername = await getUsername(req.body.username);
+      if (isExistUsername) {
+        return res.status(200).json({
+          status: 200,
+          success: true,
+          type: "username",
+          message: "Username already in use",
+        });
+      } else {
+        const createResult = await createNewUser(req.body);
+        const token = await generateVerifyToken({
+          email: createResult?.email,
+          username: createResult?.username,
+          _id: createResult?._id,
+        });
+        await sendVerifyEmail(createResult, token);
+        res.status(200).json({
+          status: 200,
+          success: true,
+          message: "Please check your email, and verify your email address",
+        });
+      }
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Create Failed!",
+      error_message: error.message,
     });
+  }
+};
+
+const verifyEmail = async (req, res) => {
+  try {
+    const tokenUser = await decodeToken(req.params.token);
+    if (tokenUser?.success) {
+      const result = await User.findByIdAndUpdate(
+        {
+          _id: tokenUser?.data?._id,
+          email: tokenUser?.data?.email,
+        },
+        {
+          $set: {
+            verified: true,
+          },
+        },
+        { new: true }
+      );
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Email Verification Success",
+        data: result,
+      });
+    } else {
+      res.status(200).json({
+        status: 201,
+        success: false,
+        message: "Verification is Expired!. please try again",
+      });
+    }
   } catch (error) {
     res.status(201).json({
       status: 201,
@@ -26,4 +102,5 @@ const createUser = async (req, res) => {
 
 module.exports = {
   createUser,
+  verifyEmail,
 };

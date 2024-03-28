@@ -21,6 +21,12 @@ const userSchema = new Schema(
       select: false,
       required: true,
     },
+    verified: {
+      type: Boolean,
+      enum: [true, false],
+      default: false,
+      required: true,
+    },
   },
   {
     timestamps: true,
