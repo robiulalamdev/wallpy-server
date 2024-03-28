@@ -17,6 +17,17 @@ const getUser = async (email) => {
   const result = await User.findOne({ email: email });
   return result;
 };
+
+const getUserWithPassword = async (email) => {
+  const result = await User.findOne({ email: email }).select("+password");
+  return result;
+};
+
+const getUserInfoById = async (id) => {
+  const result = await User.findOne({ _id: id });
+  return result;
+};
+
 const getUsername = async (username) => {
   const result = await User.findOne({ username: username });
   return result;
@@ -25,5 +36,7 @@ const getUsername = async (username) => {
 module.exports = {
   createNewUser,
   getUser,
+  getUserWithPassword,
   getUsername,
+  getUserInfoById,
 };

@@ -1,7 +1,18 @@
-const { generateVerifyToken, decodeToken } = require("../../helpers/jwtHelper");
+const {
+  generateVerifyToken,
+  decodeToken,
+  generateToken,
+} = require("../../helpers/jwtHelper");
 const { sendVerifyEmail } = require("../../helpers/sendEmailHelper");
 const User = require("./user.model");
-const { getUsername, getUser, createNewUser } = require("./user.service");
+const {
+  getUsername,
+  getUser,
+  createNewUser,
+  getUserWithPassword,
+  getUserInfoById,
+} = require("./user.service");
+const bcrcypt = require("bcryptjs");
 
 const createUser = async (req, res) => {
   try {
@@ -94,7 +105,65 @@ const verifyEmail = async (req, res) => {
     res.status(201).json({
       status: 201,
       success: false,
-      message: "User Create Failed!",
+      message: "User Verification Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
+const loginUser = async (req, res) => {
+  try {
+    const isExistUser = await getUserWithPassword(req.body.email);
+    if (isExistUser) {
+      if (isExistUser?.verified) {
+        if (bcrcypt.compareSync(req.body.password, isExistUser.password)) {
+          const accessToken = await generateToken({
+            email: isExistUser?.email,
+            username: isExistUser?.username,
+            verified: isExistUser?.verified,
+            _id: isExistUser?._id,
+          });
+          return res.status(200).json({
+            status: 200,
+            success: true,
+            message: "User Login Success",
+            data: { accessToken: accessToken },
+          });
+        } else {
+          return res.status(201).json({
+            status: 201,
+            success: false,
+            type: "password",
+            message: "Incorrect Password",
+          });
+        }
+      } else {
+        const token = await generateVerifyToken({
+          email: isExistUser?.email,
+          username: isExistUser?.username,
+          _id: isExistUser?._id,
+        });
+        await sendVerifyEmail(isExistUser, token);
+        res.status(200).json({
+          status: 200,
+          success: true,
+          message:
+            "This Email have an account and account is unverified. Please check your email, and verify your email address",
+        });
+      }
+    } else {
+      return res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Login Failed!",
       error_message: error.message,
     });
   }
@@ -103,4 +172,5 @@ const verifyEmail = async (req, res) => {
 module.exports = {
   createUser,
   verifyEmail,
+  loginUser,
 };

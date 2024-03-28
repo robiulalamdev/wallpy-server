@@ -27,6 +27,12 @@ const userSchema = new Schema(
       default: false,
       required: true,
     },
+    provider: {
+      type: String,
+      enum: ["Manual", "Google", "Facebook", "Apple"],
+      default: "Manual",
+      required: true,
+    },
   },
   {
     timestamps: true,
