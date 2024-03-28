@@ -3,7 +3,10 @@ const {
   decodeToken,
   generateToken,
 } = require("../../helpers/jwtHelper");
-const { sendVerifyEmail } = require("../../helpers/sendEmailHelper");
+const {
+  sendVerifyEmail,
+  sendForgotPasswordMail,
+} = require("../../helpers/sendEmailHelper");
 const User = require("./user.model");
 const {
   getUsername,
@@ -169,8 +172,128 @@ const loginUser = async (req, res) => {
   }
 };
 
+const resetPassword = async (req, res) => {
+  try {
+    const isExistUser = await getUser(req.body.email);
+    if (isExistUser) {
+      const token = await generateVerifyToken({
+        email: isExistUser?.email,
+        username: isExistUser?.username,
+        _id: isExistUser?._id,
+      });
+      await sendForgotPasswordMail(isExistUser, token);
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Please check your email, and Reset Your Password",
+      });
+    } else {
+      return res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "Operation Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
+const verifyResetPasswordToken = async (req, res) => {
+  try {
+    const tokenUser = await decodeToken(req.params.token);
+    if (tokenUser?.success) {
+      const result = await User.findByIdAndUpdate(
+        {
+          _id: tokenUser?.data?._id,
+        },
+        {
+          $set: {
+            reset_password: true,
+          },
+        },
+        { new: false }
+      );
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Your Password Reset",
+      });
+    } else {
+      res.status(201).json({
+        status: 201,
+        success: false,
+        message: "Verification is Expired!. please try again",
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Verification Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const isExistUser = await getUser(req.body.email);
+    if (isExistUser) {
+      if (isExistUser?.reset_password) {
+        const result = await User.findByIdAndUpdate(
+          {
+            _id: isExistUser?._id.toString(),
+          },
+          {
+            $set: {
+              password: bcrcypt.hashSync(req.body.password),
+            },
+          },
+          { new: false }
+        );
+        res.status(200).json({
+          status: 200,
+          success: true,
+          message: "Password Changed Success",
+        });
+      } else {
+        res.status(200).json({
+          status: 200,
+          success: false,
+          type: "password",
+          message: "Please Reset Password. before Change password",
+        });
+      }
+    } else {
+      return res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Login Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
   loginUser,
+  resetPassword,
+  verifyResetPasswordToken,
+  changePassword,
 };

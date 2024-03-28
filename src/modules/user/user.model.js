@@ -33,6 +33,12 @@ const userSchema = new Schema(
       default: "Manual",
       required: true,
     },
+    reset_password: {
+      type: Boolean,
+      enum: [true, false],
+      default: false,
+      required: false,
+    },
   },
   {
     timestamps: true,

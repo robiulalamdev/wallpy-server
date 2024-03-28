@@ -1,15 +1,16 @@
 const VARIABLES = require("../config");
 const nodemailer = require("nodemailer");
 
-const sendVerifyEmail = async (user, token) => {
-  const transporter = nodemailer.createTransport({
-    service: "Gmail",
-    auth: {
-      user: VARIABLES.MAIL_USER,
-      pass: VARIABLES.MAIL_PASS,
-    },
-  });
+const transport = {
+  service: "Gmail",
+  auth: {
+    user: VARIABLES.MAIL_USER,
+    pass: VARIABLES.MAIL_PASS,
+  },
+};
 
+const sendVerifyEmail = async (user, token) => {
+  const transporter = nodemailer.createTransport(transport);
   const mailOptions = {
     from: VARIABLES.MAIL_USER,
     to: user?.email,
@@ -66,6 +67,70 @@ const sendVerifyEmail = async (user, token) => {
   });
 };
 
+const sendForgotPasswordMail = async (user, token) => {
+  const transporter = nodemailer.createTransport(transport);
+
+  const mailOptions = {
+    from: process.env.MAIL_USER,
+    to: user?.email,
+    subject: "Forgot Password - Reset Your Password",
+    html: `
+    <div
+    style="max-width: 600px; width: 100%; margin: 0 auto; font-family: 'Cabin',sans-serif; text-align:center; background-color: #ffff;">
+    <div style="width: 100%; background-color: #037d41; align-items: center; padding:30px 0px">
+      <p style=" color:#ffff; font-weight: 700;">R E S E T <span style="margin-left: 10px;">P A S S W O R D</span></p>
+      <p style=" color:#ffff; margin: 0px;     line-height: 39.2px;
+      font-size: 28px;">Forget Password</p>
+    </div>
+  
+    <div style="text-align: center; padding:10px">
+      <p style="font-size: 22px;
+      line-height: 35.2px;">Hi,</p>
+      <small style="color: #636465;">You have requested to reset your password. Please click reset password to complete the password reset process:</small>
+    </div>
+    <a href="${VARIABLES.CLIENT_URL}/change-password?token=${token}" target="_blank" style="width: fit-content;cursor:pointer"  >
+    <button
+        style="
+text-align:center; width: fit-content;min-width: 100px; display: block; cursor:pointer;
+padding: 14px 44px 13px;
+line-height: 120%; margin: 30px auto; background-color: #037d41 ; color:#ffff; border:none;border-radius: 5px;">Reset Password</button>
+    </a>
+  
+    <div style="text-align: center; padding:10px">
+      <small style="color: #636465; font-size: 12px;"><span style="color:red;">*</span> If you did not initiate this
+        password reset, please
+        contact our
+        support team immediately.</small>
+    </div>
+    <div
+            style="background-color: #d9eee4; padding:10px; font-size:14px;color:#003399;line-height:160%;text-align:center;word-wrap:break-word">
+            <p style="font-size:14px;line-height:160%"><span style="font-size:20px;line-height:32px"><strong>Get in
+                        touch</strong></span></p>
+            <p style="font-size:14px;line-height:160%"><span style="font-size:16px;line-height:25.6px;color:#000000"><a
+                        href="mailto:support@wps.com"
+                        target="_blank">support@wps.com</a></span>
+            </p>
+        </div>
+        <div style="color:#ffff; background-color: #037d41; padding: 1px;">
+            <p style="font-size:14px;line-height:180% ; color:#ffff">Copyrights © wps
+                All
+                Rights Reserved</p>
+        </div>
+  </div>
+    `,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    console.log(error, info);
+    if (error) {
+      console.log(error);
+    } else {
+      return true;
+    }
+  });
+};
+
 module.exports = {
   sendVerifyEmail,
+  sendForgotPasswordMail,
 };
