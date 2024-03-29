@@ -1,3 +1,5 @@
+const Profile = require("../profile/profile.model");
+const Settings = require("../settings/settings.model");
 const User = require("./user.model");
 const bcrcypt = require("bcryptjs");
 
@@ -10,7 +12,13 @@ const createNewUser = async (data) => {
     verified: false,
   });
   const result = await newUser.save();
-  return result;
+  if (result) {
+    const newProfile = new Profile({ user: result?._id.toString() });
+    const newSettings = new Settings({ user: result?._id.toString() });
+    const settingsResult = await newSettings.save();
+    const profileResult = await newProfile.save();
+    return result;
+  }
 };
 
 const getUser = async (email) => {
@@ -30,7 +38,9 @@ const getUserWithPassword = async (email) => {
 
 const getUserInfoById = async (id) => {
   const result = await User.findOne({ _id: id });
-  return result;
+  const profile = await Profile.findOne({ user: id });
+  const settings = await Settings.findOne({ user: id });
+  return { ...result.toObject(), profile: profile, settings: settings };
 };
 
 const getUsername = async (username) => {
