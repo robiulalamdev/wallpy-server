@@ -7,10 +7,7 @@ const app = express();
 // middleware
 app.use(
   cors({
-    origin:
-      VARIABLES.NODE_ENV === "production"
-        ? VARIABLES.CLIENT_URL
-        : [VARIABLES.CLIENT_URL, VARIABLES.LOCAL_URL],
+    origin: [VARIABLES.CLIENT_URL, VARIABLES.LOCAL_URL],
     credentials: true,
   })
 );
