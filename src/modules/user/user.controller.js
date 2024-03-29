@@ -225,7 +225,7 @@ const resetPassword = async (req, res) => {
     res.status(201).json({
       status: 201,
       success: false,
-      message: "Operation Failed!",
+      message: "Operation Failed. please try again!",
       error_message: error.message,
     });
   }
@@ -236,26 +236,38 @@ const verifyResetPasswordToken = async (req, res) => {
   try {
     const tokenUser = await decodeToken(req.params.token);
     if (tokenUser?.success) {
-      const result = await User.findByIdAndUpdate(
-        {
-          _id: tokenUser?.data?._id,
-        },
-        {
-          $set: {
-            reset_password: true,
+      const user = await getUser(tokenUser?.data?.email);
+      if (user) {
+        const result = await User.findByIdAndUpdate(
+          {
+            _id: tokenUser?.data?._id,
           },
-        },
-        { new: false }
-      );
-      res.status(200).json({
-        status: 200,
-        success: true,
-        message: "Your Password Reset",
-      });
+          {
+            $set: {
+              reset_password: true,
+            },
+          },
+          { new: false }
+        );
+        res.status(200).json({
+          status: 200,
+          success: true,
+          message: "Your Password Reset",
+          data: { email: result?.email },
+        });
+      } else {
+        res.status(404).json({
+          status: 404,
+          success: false,
+          type: "email",
+          message: "User Not Found!",
+        });
+      }
     } else {
       res.status(201).json({
         status: 201,
         success: false,
+        type: "token",
         message: "Verification is Expired!. please try again",
       });
     }
@@ -282,6 +294,7 @@ const changePassword = async (req, res) => {
           {
             $set: {
               password: bcrcypt.hashSync(req.body.password),
+              reset_password: false,
             },
           },
           { new: false }

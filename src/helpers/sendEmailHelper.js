@@ -88,7 +88,7 @@ const sendForgotPasswordMail = async (user, token) => {
       line-height: 35.2px;">Hi,</p>
       <small style="color: #636465;">You have requested to reset your password. Please click reset password to complete the password reset process:</small>
     </div>
-    <a href="${VARIABLES.CLIENT_URL}/change-password?token=${token}" target="_blank" style="width: fit-content;cursor:pointer"  >
+    <a href="${VARIABLES.CLIENT_URL}/change-password/${token}" target="_blank" style="width: fit-content;cursor:pointer"  >
     <button
         style="
 text-align:center; width: fit-content;min-width: 100px; display: block; cursor:pointer;
