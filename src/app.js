@@ -5,7 +5,12 @@ const { routers } = require("./routes");
 const app = express();
 
 // middleware
-app.use(cors({ origin: VARIABLES.CLIENT_URL, credentials: true }));
+app.use(
+  cors({
+    origin: [VARIABLES.CLIENT_URL, VARIABLES.LOCAL_URL],
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: "500mb" }));
 app.use(
   express.urlencoded({ limit: "500mb", extended: true, parameterLimit: 500000 })

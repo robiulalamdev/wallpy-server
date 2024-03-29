@@ -14,6 +14,7 @@ const VARIABLES = {
 
   // Client
   CLIENT_URL: process.env.CLIENT_URL,
+  LOCAL_URL: process.env.LOCAL_URL,
 
   // Mail User
   MAIL_USER: process.env.MAIL_USER,
