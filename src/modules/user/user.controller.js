@@ -26,6 +26,7 @@ const createUser = async (req, res) => {
         res.status(201).json({
           status: 201,
           success: false,
+          type: "email",
           message: "Email already in use",
         });
       } else {
@@ -37,7 +38,8 @@ const createUser = async (req, res) => {
         await sendVerifyEmail(isExistUser, token);
         res.status(200).json({
           status: 200,
-          success: true,
+          success: false,
+          type: "unverified",
           message:
             "This Email have an account and account is unverified. Please check your email, and verify your email address",
         });
@@ -47,7 +49,7 @@ const createUser = async (req, res) => {
       if (isExistUsername) {
         return res.status(200).json({
           status: 200,
-          success: true,
+          success: false,
           type: "username",
           message: "Username already in use",
         });
@@ -62,6 +64,7 @@ const createUser = async (req, res) => {
         res.status(200).json({
           status: 200,
           success: true,
+          type: "verify",
           message: "Please check your email, and verify your email address",
         });
       }
@@ -80,24 +83,43 @@ const verifyEmail = async (req, res) => {
   try {
     const tokenUser = await decodeToken(req.params.token);
     if (tokenUser?.success) {
-      const result = await User.findByIdAndUpdate(
-        {
-          _id: tokenUser?.data?._id,
-          email: tokenUser?.data?.email,
-        },
-        {
-          $set: {
-            verified: true,
-          },
-        },
-        { new: true }
-      );
-      res.status(200).json({
-        status: 200,
-        success: true,
-        message: "Email Verification Success",
-        data: result,
-      });
+      const user = await getUser(tokenUser?.data?.email);
+      if (user) {
+        if (user?.verified) {
+          return res.status(200).json({
+            status: 200,
+            success: true,
+            message: "Email Already Verified",
+          });
+        } else {
+          const result = await User.findByIdAndUpdate(
+            {
+              _id: tokenUser?.data?._id,
+              email: tokenUser?.data?.email,
+            },
+            {
+              $set: {
+                verified: true,
+              },
+            },
+            { new: true }
+          );
+          res.status(200).json({
+            status: 200,
+            success: true,
+            message:
+              "Welcome! Your email has been successfully verified. Thank you for completing your registration and joining the society!",
+            data: result,
+          });
+        }
+      } else {
+        res.status(404).json({
+          status: 404,
+          success: false,
+          type: "email",
+          message: "Account Not Found!",
+        });
+      }
     } else {
       res.status(200).json({
         status: 201,
@@ -151,7 +173,8 @@ const loginUser = async (req, res) => {
         await sendVerifyEmail(isExistUser, token);
         res.status(200).json({
           status: 200,
-          success: true,
+          type: "unverified",
+          success: false,
           message:
             "This Email have an account and account is unverified. Please check your email, and verify your email address",
         });
