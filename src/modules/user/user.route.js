@@ -8,8 +8,11 @@ const {
   changePassword,
   updatePassword,
   getUserInfo,
+  updateProfileTabInfo,
+  updateCredentialsTabInfo,
 } = require("./user.controller");
 const { isAuth } = require("../../middlewares/auth");
+const { upload, handleMulterError } = require("../../config/multer");
 const router = express.Router();
 
 router.post("/signup", createUser);
@@ -24,5 +27,18 @@ router.post("/change-password/", changePassword);
 
 // change password with auth token after login
 router.patch("/update-password/", isAuth, updatePassword);
+
+// update endpoints
+router.patch(
+  "/update-profile-tab",
+  isAuth,
+  upload.fields([
+    { name: "profile_image", maxCount: 1 },
+    { name: "banner", maxCount: 1 },
+  ]),
+  handleMulterError,
+  updateProfileTabInfo
+);
+router.patch("/update-credentials-tab", isAuth, updateCredentialsTabInfo);
 
 module.exports = { userRoutes: router };

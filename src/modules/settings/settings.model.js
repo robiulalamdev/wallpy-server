@@ -25,6 +25,10 @@ const userSettingsSchema = new Schema(
       default: true,
       required: false,
     },
+    blacklist_tags: {
+      type: [String],
+      required: false,
+    },
   },
   {
     timestamps: true,

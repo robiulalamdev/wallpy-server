@@ -1,6 +1,7 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const VARIABLES = require("../config");
+const { getUserByUsername } = require("../modules/user/user.service");
 
 const isAuth = async (req, res, next) => {
   const authHeader = req.headers.authorization;

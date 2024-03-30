@@ -1,6 +1,7 @@
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
+const fsExtra = require("fs-extra");
 
 const isVideoFile = function (file) {
   const allowedExtensions = [".mkv", ".mp4", ".webm", ".ogg"];
@@ -69,8 +70,12 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    console.log("dd", file);
+    // const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const extName = path.extname(file.originalname);
+    const uniqueSuffix =
+      file.originalname.split(extName)[0]?.slice(0, 100) + "-" + Date.now();
+    cb(null, uniqueSuffix + extName);
   },
 });
 
@@ -92,7 +97,14 @@ const handleMulterError = (err, req, res, next) => {
   next();
 };
 
+const removeFile = async (path) => {
+  if (path) {
+    await fsExtra.remove(path);
+  }
+};
+
 module.exports = {
   upload,
   handleMulterError,
+  removeFile,
 };

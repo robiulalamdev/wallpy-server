@@ -3,6 +3,7 @@ const cors = require("cors");
 const VARIABLES = require("./config");
 const { routers } = require("./routes");
 const app = express();
+const path = require("path");
 
 // middleware
 app.use(
@@ -17,5 +18,7 @@ app.use(
 );
 
 app.use("/api/v1", routers);
+// static file serving
+app.use("/api/v1/uploads", express.static(path.join(__dirname, "../")));
 
 module.exports = app;

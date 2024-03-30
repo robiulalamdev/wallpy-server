@@ -1,3 +1,4 @@
+const { removeFile } = require("../../config/multer");
 const {
   generateVerifyToken,
   decodeToken,
@@ -7,6 +8,7 @@ const {
   sendVerifyEmail,
   sendForgotPasswordMail,
 } = require("../../helpers/sendEmailHelper");
+const { updateProfileBySetMethod } = require("../profile/profile.service");
 const User = require("./user.model");
 const {
   getUsername,
@@ -15,6 +17,9 @@ const {
   getUserWithPassword,
   getUserInfoById,
   getUserByUsername,
+  updateUserWithSetMethod,
+  getUserByIdWithPassword,
+  getUserByEmail,
 } = require("./user.service");
 const bcrcypt = require("bcryptjs");
 
@@ -366,7 +371,7 @@ const changePassword = async (req, res) => {
 
 const updatePassword = async (req, res) => {
   try {
-    const isExistUser = await getUserWithPassword(req.user?.email);
+    const isExistUser = await getUserByIdWithPassword(req.user?._id);
     if (isExistUser) {
       if (
         bcrcypt.compareSync(req.body.current_password, isExistUser.password)
@@ -441,6 +446,132 @@ const getUserInfo = async (req, res) => {
   }
 };
 
+const updateProfileTabInfo = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoById(req.user?._id);
+    if (isExistUser) {
+      const isExistUsername = await getUserByUsername(req.body.username);
+      if (
+        isExistUsername &&
+        isExistUsername?._id.toString() !== isExistUser?._id?.toString()
+      ) {
+        return res.status(200).json({
+          status: 200,
+          success: false,
+          type: "username",
+          message: "Username already in use",
+        });
+      } else {
+        const profileData = {};
+        if (req.files.profile_image) {
+          profileData["profile_image"] = req.files.profile_image[0].path;
+        }
+        if (req.files.banner) {
+          profileData["banner"] = req.files.banner[0].path;
+        }
+        if (req.body.bio) {
+          profileData["bio"] = req.body.bio;
+        }
+        const updateObject = { username: req.body.username };
+        await updateUserWithSetMethod(
+          updateObject,
+          isExistUser?._id.toString()
+        );
+        await updateProfileBySetMethod(
+          profileData,
+          isExistUser?._id.toString()
+        );
+        if (req.files.banner) {
+          await removeFile(isExistUser?.profile?.banner);
+        }
+        if (req.files.profile_image) {
+          await removeFile(isExistUser?.profile?.profile_image);
+        }
+        return res.status(200).json({
+          status: 200,
+          success: true,
+          message: "User info Update Successfully",
+        });
+      }
+    } else {
+      return res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User not Found!",
+        data: null,
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Retrieve Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
+// update credentials tab info
+const updateCredentialsTabInfo = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoById(req.user?._id);
+    if (isExistUser) {
+      const updateData = {};
+      if (req.body?.new_password && req.body?.current_password) {
+        updateData["password"] = bcrcypt.hashSync(req.body.new_password);
+      }
+      if (req.body?.warnings) {
+        updateData["warnings"] = req.body?.warnings;
+      }
+      if (req.body?.email) {
+        const isExistMail = await getUserByEmail(req.body?.email);
+        if (
+          isExistMail &&
+          isExistMail?._id.toString() !== isExistUser?._id?.toString()
+        ) {
+          updateData["email"] = req.body?.email;
+          return res.status(201).json({
+            status: 201,
+            success: false,
+            type: "email",
+            message: "Email already in use!",
+          });
+        }
+      }
+      const result = await User.findByIdAndUpdate(
+        {
+          _id: isExistUser?._id.toString(),
+        },
+        {
+          $set: updateData,
+        },
+        { new: false }
+      );
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Information update successfully",
+      });
+    } else {
+      return res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User not Found!",
+        data: null,
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Retrieve Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -450,4 +581,6 @@ module.exports = {
   changePassword,
   updatePassword,
   getUserInfo,
+  updateProfileTabInfo,
+  updateCredentialsTabInfo,
 };

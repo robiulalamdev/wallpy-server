@@ -36,6 +36,11 @@ const getUserWithPassword = async (email) => {
   return result;
 };
 
+const getUserByIdWithPassword = async (id) => {
+  const result = await User.findOne({ _id: id }).select("+password");
+  return result;
+};
+
 const getUserInfoById = async (id) => {
   const result = await User.findOne({ _id: id });
   const profile = await Profile.findOne({ user: id });
@@ -48,6 +53,22 @@ const getUsername = async (username) => {
   return result;
 };
 
+const getUserByEmail = async (email) => {
+  const result = await User.findOne({ email: email });
+  return result;
+};
+
+const updateUserWithSetMethod = async (data, id) => {
+  const result = await User.findByIdAndUpdate(
+    { _id: id },
+    {
+      $set: data,
+    },
+    { new: false }
+  );
+  return result;
+};
+
 module.exports = {
   createNewUser,
   getUser,
@@ -55,4 +76,7 @@ module.exports = {
   getUsername,
   getUserInfoById,
   getUserByUsername,
+  updateUserWithSetMethod,
+  getUserByIdWithPassword,
+  getUserByEmail,
 };
