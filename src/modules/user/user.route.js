@@ -10,6 +10,7 @@ const {
   getUserInfo,
   updateProfileTabInfo,
   updateCredentialsTabInfo,
+  getPublicUserInfo,
 } = require("./user.controller");
 const { isAuth } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -19,6 +20,7 @@ router.post("/signup", createUser);
 router.post("/email-verify/:token", verifyEmail);
 router.post("/login", loginUser);
 router.get("/me", isAuth, getUserInfo);
+router.get("/profile/:username", getPublicUserInfo);
 
 // reset password with email
 router.post("/reset-password", resetPassword);

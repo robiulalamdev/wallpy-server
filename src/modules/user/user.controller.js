@@ -20,6 +20,7 @@ const {
   updateUserWithSetMethod,
   getUserByIdWithPassword,
   getUserByEmail,
+  getUserInfoByUsername,
 } = require("./user.service");
 const bcrcypt = require("bcryptjs");
 
@@ -446,6 +447,35 @@ const getUserInfo = async (req, res) => {
   }
 };
 
+// get user info by username
+const getPublicUserInfo = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoByUsername(req.params.username);
+    if (isExistUser) {
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "User Retrieve Success",
+        data: isExistUser,
+      });
+    } else {
+      return res.status(404).json({
+        status: 404,
+        success: false,
+        message: "User not Found!",
+        data: null,
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Retrieve Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
 const updateProfileTabInfo = async (req, res) => {
   try {
     const isExistUser = await getUserInfoById(req.user?._id);
@@ -583,4 +613,5 @@ module.exports = {
   getUserInfo,
   updateProfileTabInfo,
   updateCredentialsTabInfo,
+  getPublicUserInfo,
 };

@@ -43,9 +43,24 @@ const getUserByIdWithPassword = async (id) => {
 
 const getUserInfoById = async (id) => {
   const result = await User.findOne({ _id: id });
-  const profile = await Profile.findOne({ user: id });
-  const settings = await Settings.findOne({ user: id });
-  return { ...result.toObject(), profile: profile, settings: settings };
+  if (result) {
+    const profile = await Profile.findOne({ user: id });
+    const settings = await Settings.findOne({ user: id });
+    return { ...result.toObject(), profile: profile, settings: settings };
+  } else {
+    return null;
+  }
+};
+
+const getUserInfoByUsername = async (username) => {
+  const result = await User.findOne({ username: username });
+  if (result) {
+    const profile = await Profile.findOne({ user: result?._id.toString() });
+    const settings = await Settings.findOne({ user: result?._id.toString() });
+    return { ...result.toObject(), profile: profile, settings: settings };
+  } else {
+    return null;
+  }
 };
 
 const getUsername = async (username) => {
@@ -79,4 +94,5 @@ module.exports = {
   updateUserWithSetMethod,
   getUserByIdWithPassword,
   getUserByEmail,
+  getUserInfoByUsername,
 };
