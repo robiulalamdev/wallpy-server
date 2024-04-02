@@ -18,6 +18,11 @@ const wallpaperSchema = new Schema(
       type: String,
       required: true,
     },
+    slug: {
+      type: String,
+      unique: true,
+      required: true,
+    },
     type: {
       type: String,
       enum: WALLPAPER_ENUMS.TYPES,
