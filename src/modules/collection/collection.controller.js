@@ -60,18 +60,28 @@ const getCollectionsList = async (req, res) => {
   try {
     const isExistUser = await getUserById(req.params.userId);
     if (isExistUser) {
-      const result = await Collection.find({
+      let result = await Collection.find({
         user: isExistUser?._id?.toString(),
         status: true,
       })
         .sort({ _id: -1 })
-        .select("name");
+        .select("name wallpapers");
 
+      let isExist = false;
+      for (let i = 0; i < result.length; i++) {
+        const isIndex = await result[i]?.wallpapers?.findIndex(
+          (nItem) => nItem?.toString() === req.params?.wallpaperId
+        );
+        if (isIndex !== -1) {
+          result[i] = { ...result[i].toObject(), added: true };
+          isExist = true;
+        }
+      }
       res.status(200).json({
         status: 200,
         success: true,
         message: "Collections Retrieve Success",
-        data: result,
+        data: { isExist: isExist, data: result },
       });
     } else {
       res.status(404).json({
@@ -158,6 +168,7 @@ const removeMyCollections = async (req, res) => {
     });
   }
 };
+
 const updateMyCollections = async (req, res) => {
   try {
     const isExistUser = await getUserById(req.user._id);
@@ -193,6 +204,66 @@ const updateMyCollections = async (req, res) => {
   }
 };
 
+const addRemoveCollectionItem = async (req, res) => {
+  try {
+    const isExistUser = await getUserById(req.user._id);
+    if (isExistUser) {
+      const existingDocument = await Collection.findOne({
+        _id: req.params?.collectionId,
+        wallpapers: req.body.wallpaperId,
+      });
+      if (existingDocument) {
+        const result = await Collection.findByIdAndUpdate(
+          { _id: req.params?.collectionId },
+          {
+            $pull: { wallpapers: req.body.wallpaperId },
+          },
+          { new: false }
+        );
+        res.status(200).json({
+          status: 200,
+          success: true,
+          message: "Collections Update Success",
+          data: result,
+        });
+      } else {
+        const result = await Collection.findByIdAndUpdate(
+          { _id: req.params?.collectionId },
+          {
+            $push: {
+              wallpapers: {
+                $each: [req.body.wallpaperId],
+                $position: 0,
+              },
+            },
+          },
+          { new: false }
+        );
+        res.status(200).json({
+          status: 200,
+          success: true,
+          message: "Collections Update Success",
+          data: result,
+        });
+      }
+    } else {
+      res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User Not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createCollection,
   getMyCollections,
@@ -200,4 +271,5 @@ module.exports = {
   removeMyCollections,
   updateMyCollections,
   getCollectionsList,
+  addRemoveCollectionItem,
 };
