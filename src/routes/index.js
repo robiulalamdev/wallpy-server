@@ -5,6 +5,7 @@ const { profileRoutes } = require("../modules/profile/profile.route");
 const { wallpaperRoutes } = require("../modules/wallpaper/wallpaper.route");
 const { favoriteRoutes } = require("../modules/favorite/favorite.route");
 const { collectionRoutes } = require("../modules/collection/collection.route");
+const { helperRoutes } = require("../modules/helper/helper.route");
 const router = express.Router();
 
 const moduleRoutes = [
@@ -31,6 +32,10 @@ const moduleRoutes = [
   {
     path: "/collections",
     route: collectionRoutes,
+  },
+  {
+    path: "/helpers",
+    route: helperRoutes,
   },
 ];
 

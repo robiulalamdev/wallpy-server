@@ -36,7 +36,7 @@ const userProfileSchema = new Schema(
     verification_status: {
       type: String,
       enum: ["None", "Pending", "Approved", "Decline"],
-      default: "None",
+      default: "Approved",
       required: true,
     },
     other_verified_profiles: {
