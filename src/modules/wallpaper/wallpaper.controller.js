@@ -93,6 +93,38 @@ const getWallpapers = async (req, res) => {
   }
 };
 
+const getWallpapersByUserId = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoById(req.params.userId);
+    if (isExistUser) {
+      const published = await Wallpaper.find({
+        user: req.params.userId,
+        status: WALLPAPER_ENUMS.STATUS[1],
+      }).sort({ _id: -1 });
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Wallpapers Retrieve Successfully",
+        data: published,
+      });
+    } else {
+      res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User Not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 const getWallpaperBySlug = async (req, res) => {
   try {
     const result = await Wallpaper.findOne({
@@ -300,6 +332,7 @@ const deleteWallpapersByIds = async (req, res) => {
 module.exports = {
   createWallpapers,
   getWallpapers,
+  getWallpapersByUserId,
   deleteWallpapersByIds,
   updateWallpapers,
   getWallpapersBySearch,

@@ -1,5 +1,7 @@
 const Profile = require("../profile/profile.model");
 const Settings = require("../settings/settings.model");
+const { WALLPAPER_ENUMS } = require("../wallpaper/wallpaper.constant");
+const Wallpaper = require("../wallpaper/wallpaper.model");
 const User = require("./user.model");
 const bcrcypt = require("bcryptjs");
 

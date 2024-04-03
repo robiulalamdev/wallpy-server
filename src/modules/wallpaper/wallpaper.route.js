@@ -6,6 +6,7 @@ const {
   updateWallpapers,
   getWallpapersBySearch,
   getWallpaperBySlug,
+  getWallpapersByUserId,
 } = require("./wallpaper.controller");
 const { isAuth } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -19,6 +20,7 @@ router.post(
   createWallpapers
 );
 router.get("/", isAuth, getWallpapers);
+router.get("/profile-wallpapers/:userId", getWallpapersByUserId);
 router.get("/public", getWallpapersBySearch);
 router.get("/:slug", getWallpaperBySlug);
 router.patch("/updates", isAuth, updateWallpapers);

@@ -1,59 +1,18 @@
 const { getUserById } = require("../user/user.service");
-const { WALLPAPER_ENUMS } = require("../wallpaper/wallpaper.constant");
-const Wallpaper = require("../wallpaper/wallpaper.model");
-const Favorite = require("./favorite.model");
+const Collection = require("./collection.model");
 
-const createFavoriteWithToggle = async (req, res) => {
+const createCollection = async (req, res) => {
   try {
-    const isExistUser = await getUserById(req.user._id);
-    if (isExistUser) {
-      const isExist = await Wallpaper.findOne({
-        _id: req.body.id,
-        status: WALLPAPER_ENUMS.STATUS[1],
-      });
-      if (isExist) {
-        const alreadyExist = await Favorite.findOne({
-          user: isExistUser?._id.toString(),
-          wallpaper: req.body.id,
-        });
-        if (alreadyExist) {
-          const removeResult = await Favorite.deleteOne({
-            user: isExistUser?._id.toString(),
-            wallpaper: req.body.id,
-          });
-          res.status(200).json({
-            status: 200,
-            success: true,
-            message: "Favorite is Removed",
-          });
-        } else {
-          const newFavorite = new Favorite({
-            user: isExistUser?._id.toString(),
-            wallpaper: req.body.id,
-          });
-          const result = await newFavorite.save();
-          res.status(200).json({
-            status: 200,
-            success: true,
-            message: "Add to Favorite Success",
-          });
-        }
-      } else {
-        return res.status(404).json({
-          status: 404,
-          success: false,
-          type: "wallpaper",
-          message: "Data Not Found!",
-        });
-      }
-    } else {
-      res.status(404).json({
-        status: 404,
-        success: false,
-        type: "email",
-        message: "User Not Found!",
-      });
-    }
+    const newCollection = new Collection({
+      user: req.user?._id,
+      name: req.body.name,
+    });
+    const result = await newCollection.save();
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "collection Create Success!",
+    });
   } catch (error) {
     res.status(500).json({
       status: 500,
@@ -64,19 +23,19 @@ const createFavoriteWithToggle = async (req, res) => {
   }
 };
 
-const getMyFavorites = async (req, res) => {
+const getMyCollections = async (req, res) => {
   try {
     const isExistUser = await getUserById(req.user._id);
     if (isExistUser) {
-      const result = await Favorite.find({
+      const result = await Collection.find({
         user: isExistUser?._id?.toString(),
       })
-        .populate("wallpaper")
+        .populate("wallpapers")
         .sort({ _id: -1 });
       res.status(200).json({
         status: 200,
         success: true,
-        message: "Favorites Retrieve Success",
+        message: "Collections Retrieve Success",
         data: result,
       });
     } else {
@@ -97,20 +56,21 @@ const getMyFavorites = async (req, res) => {
   }
 };
 
-const getMyProfileFavorites = async (req, res) => {
+const getCollectionsList = async (req, res) => {
   try {
-    const isExistUser = await getUserById(req.params.id);
+    const isExistUser = await getUserById(req.params.userId);
     if (isExistUser) {
-      const result = await Favorite.find({
+      const result = await Collection.find({
         user: isExistUser?._id?.toString(),
         status: true,
       })
-        .populate("wallpaper")
-        .sort({ _id: -1 });
+        .sort({ _id: -1 })
+        .select("name");
+
       res.status(200).json({
         status: 200,
         success: true,
-        message: "Favorites Retrieve Success",
+        message: "Collections Retrieve Success",
         data: result,
       });
     } else {
@@ -131,18 +91,54 @@ const getMyProfileFavorites = async (req, res) => {
   }
 };
 
-const removeMyFavorites = async (req, res) => {
+const getMyProfileCollections = async (req, res) => {
+  try {
+    const isExistUser = await getUserById(req.params.userId);
+    if (isExistUser) {
+      const result = await Collection.find({
+        user: isExistUser?._id?.toString(),
+        status: true,
+        $expr: { $gt: [{ $size: "$wallpapers" }, 0] },
+      })
+        .populate({ path: "wallpapers", options: { limit: 4 } })
+        .sort({ _id: -1 });
+
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Collections Retrieve Success",
+        data: result,
+      });
+    } else {
+      res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User Not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
+const removeMyCollections = async (req, res) => {
   try {
     const isExistUser = await getUserById(req.user._id);
     if (isExistUser) {
-      const result = await Favorite.deleteMany({
+      const result = await Collection.deleteMany({
         _id: { $in: req.body.ids },
         user: req.user._id,
       });
       res.status(200).json({
         status: 200,
         success: true,
-        message: "Favorites Removed Success",
+        message: "Collections Removed Success",
         data: result,
       });
     } else {
@@ -162,11 +158,11 @@ const removeMyFavorites = async (req, res) => {
     });
   }
 };
-const updateMyFavorites = async (req, res) => {
+const updateMyCollections = async (req, res) => {
   try {
     const isExistUser = await getUserById(req.user._id);
     if (isExistUser) {
-      const result = await Favorite.updateMany(
+      const result = await Collection.updateMany(
         {
           _id: { $in: req.body.ids },
           user: req.user._id,
@@ -176,7 +172,7 @@ const updateMyFavorites = async (req, res) => {
       res.status(200).json({
         status: 200,
         success: true,
-        message: "Favorites Update Success",
+        message: "Collections Update Success",
         data: result,
       });
     } else {
@@ -198,9 +194,10 @@ const updateMyFavorites = async (req, res) => {
 };
 
 module.exports = {
-  createFavoriteWithToggle,
-  getMyFavorites,
-  removeMyFavorites,
-  updateMyFavorites,
-  getMyProfileFavorites,
+  createCollection,
+  getMyCollections,
+  getMyProfileCollections,
+  removeMyCollections,
+  updateMyCollections,
+  getCollectionsList,
 };
