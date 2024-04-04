@@ -7,6 +7,9 @@ const {
   getWallpapersBySearch,
   getWallpaperBySlug,
   getWallpapersByUserId,
+  getPopularWallpapers,
+  getFeaturedWallpapers,
+  getOfficialWallpapers,
 } = require("./wallpaper.controller");
 const { isAuth } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -22,8 +25,12 @@ router.post(
 router.get("/", isAuth, getWallpapers);
 router.get("/profile-wallpapers/:userId", getWallpapersByUserId);
 router.get("/public", getWallpapersBySearch);
-router.get("/:slug", getWallpaperBySlug);
+router.get("/slug/:slug", getWallpaperBySlug);
 router.patch("/updates", isAuth, updateWallpapers);
 router.delete("/deletes", isAuth, deleteWallpapersByIds);
+// get popular wallpapers
+router.get("/popular", getPopularWallpapers);
+router.get("/featured", getFeaturedWallpapers);
+router.get("/official", getOfficialWallpapers);
 
 module.exports = { wallpaperRoutes: router };

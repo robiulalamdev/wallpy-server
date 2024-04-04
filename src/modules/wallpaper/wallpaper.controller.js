@@ -1,3 +1,4 @@
+const Favorite = require("../favorite/favorite.model");
 const Profile = require("../profile/profile.model");
 const User = require("../user/user.model");
 const { getUserInfoById } = require("../user/user.service");
@@ -329,6 +330,96 @@ const deleteWallpapersByIds = async (req, res) => {
   }
 };
 
+const getPopularWallpapers = async (req, res) => {
+  try {
+    const popularWallpapers = await Favorite.aggregate([
+      {
+        $group: {
+          _id: "$wallpaper",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+      {
+        $limit: parseInt(req.query?.limit) || 20,
+      },
+    ]);
+
+    const ids = popularWallpapers.map((entry) => entry._id);
+    const result = await Wallpaper.find({
+      _id: { $in: ids },
+      status: WALLPAPER_ENUMS.STATUS[1],
+    });
+    res.status(200).json({
+      status: 200,
+      success: false,
+      message: "Wallpapers Retrieve Success",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
+const getFeaturedWallpapers = async (req, res) => {
+  try {
+    const result = await Wallpaper.find({
+      status: WALLPAPER_ENUMS.STATUS[1],
+    })
+      .sort({ _id: -1 })
+      .limit(parseInt(req.query?.limit) || 20);
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Wallpaper Retrieve Successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
+const getOfficialWallpapers = async (req, res) => {
+  try {
+    const profiles = await Profile.find({ verification_status: "Approved" })
+      .sort({ _id: -1 })
+      .limit(50);
+    const ids = await profiles?.map((pro) => pro?.user);
+    console.log(ids);
+    const result = await Wallpaper.find({
+      user: { $in: ids },
+      status: WALLPAPER_ENUMS.STATUS[1],
+    })
+      .sort({ _id: -1 })
+      .limit(parseInt(req.query?.limit) || 20);
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Wallpaper Retrieve Successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createWallpapers,
   getWallpapers,
@@ -337,4 +428,7 @@ module.exports = {
   updateWallpapers,
   getWallpapersBySearch,
   getWallpaperBySlug,
+  getPopularWallpapers,
+  getFeaturedWallpapers,
+  getOfficialWallpapers,
 };
