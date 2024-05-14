@@ -5,6 +5,7 @@ const {
   removeMyFavorites,
   updateMyFavorites,
   getMyProfileFavorites,
+  getTotalFavorites,
 } = require("./favorite.controller");
 const { isAuth } = require("../../middlewares/auth");
 const router = express.Router();
@@ -14,5 +15,8 @@ router.get("/my-favorites", isAuth, getMyFavorites);
 router.get("/my-profile-favorites/:id", getMyProfileFavorites);
 router.delete("/remove-my-favorites", isAuth, removeMyFavorites);
 router.patch("/update-my-favorites", isAuth, updateMyFavorites);
+
+// get total favorites count
+router.get("/total/:id", getTotalFavorites);
 
 module.exports = { favoriteRoutes: router };

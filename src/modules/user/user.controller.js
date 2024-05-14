@@ -8,6 +8,7 @@ const {
   sendVerifyEmail,
   sendForgotPasswordMail,
 } = require("../../helpers/sendEmailHelper");
+const Profile = require("../profile/profile.model");
 const { updateProfileBySetMethod } = require("../profile/profile.service");
 const User = require("./user.model");
 const {
@@ -602,6 +603,36 @@ const updateCredentialsTabInfo = async (req, res) => {
   }
 };
 
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({ verified: true }).sort({ _id: -1 });
+    const usersWithProfiles = await Promise.all(
+      users.map(async (user) => {
+        const profile = await Profile.findOne({ user: user._id });
+        return {
+          ...user.toObject(),
+          profile: profile ? profile.toObject() : null,
+        };
+      })
+    );
+
+    // Return the combined data
+    return res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Users and profiles retrieved successfully",
+      data: usersWithProfiles,
+    });
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Retrieve Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -614,4 +645,5 @@ module.exports = {
   updateProfileTabInfo,
   updateCredentialsTabInfo,
   getPublicUserInfo,
+  getAllUsers,
 };

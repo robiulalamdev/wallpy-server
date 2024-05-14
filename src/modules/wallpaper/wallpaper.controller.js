@@ -138,7 +138,8 @@ const getWallpaperBySlug = async (req, res) => {
       }).select("name username verified");
       const profile = await Profile.findOne({
         user: result?.user?.toString(),
-      }).select("profile_image");
+      }).select("profile_image verification_status");
+
       res.status(200).json({
         status: 200,
         success: true,
@@ -148,6 +149,8 @@ const getWallpaperBySlug = async (req, res) => {
           author_info: {
             ...getAuthor?.toObject(),
             profile_image: profile?.profile_image || null,
+            verification_status:
+              profile.verification_status === "Approved" ? true : false,
           },
         },
       });

@@ -5,6 +5,7 @@ const { upload, handleMulterError } = require("../../config/multer");
 const {
   verificationRequest,
   updateBrandTabInfo,
+  approvedProfile,
 } = require("./profile.controller");
 const router = express.Router();
 
@@ -23,5 +24,7 @@ router.patch(
   handleMulterError,
   updateBrandTabInfo
 );
+
+router.patch("/approved-profile/:id", approvedProfile);
 
 module.exports = { profileRoutes: router };

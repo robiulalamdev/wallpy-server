@@ -111,7 +111,36 @@ const updateBrandTabInfo = async (req, res) => {
   }
 };
 
+const approvedProfile = async (req, res) => {
+  try {
+    const result = await Profile.updateOne(
+      {
+        verification_status: "Pending",
+        _id: req.params.id,
+      },
+      {
+        $set: { verification_status: req.body.status },
+      },
+      { new: false }
+    );
+    return res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Profile Update Successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "Profile Update Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   verificationRequest,
   updateBrandTabInfo,
+  approvedProfile,
 };

@@ -11,6 +11,7 @@ const {
   updateProfileTabInfo,
   updateCredentialsTabInfo,
   getPublicUserInfo,
+  getAllUsers,
 } = require("./user.controller");
 const { isAuth } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -42,5 +43,6 @@ router.patch(
   updateProfileTabInfo
 );
 router.patch("/update-credentials-tab", isAuth, updateCredentialsTabInfo);
+router.get("/all", getAllUsers);
 
 module.exports = { userRoutes: router };

@@ -131,6 +131,36 @@ const getMyProfileFavorites = async (req, res) => {
   }
 };
 
+const getTotalFavorites = async (req, res) => {
+  try {
+    const isExist = await Wallpaper({ _id: req.params.id });
+    if (isExist) {
+      const result = await Favorite.countDocuments({
+        wallpaper: req.params.id,
+      });
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Favorites Retrieve Success",
+        total: result,
+      });
+    } else {
+      res.status(404).json({
+        status: 404,
+        success: false,
+        message: "Wallpaper Not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 const removeMyFavorites = async (req, res) => {
   try {
     const isExistUser = await getUserById(req.user._id);
@@ -203,4 +233,5 @@ module.exports = {
   removeMyFavorites,
   updateMyFavorites,
   getMyProfileFavorites,
+  getTotalFavorites,
 };
