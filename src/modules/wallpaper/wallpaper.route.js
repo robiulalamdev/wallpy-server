@@ -10,6 +10,7 @@ const {
   getPopularWallpapers,
   getFeaturedWallpapers,
   getOfficialWallpapers,
+  updateWallpaperTag,
 } = require("./wallpaper.controller");
 const { isAuth } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -32,5 +33,8 @@ router.delete("/deletes", isAuth, deleteWallpapersByIds);
 router.get("/popular", getPopularWallpapers);
 router.get("/featured", getFeaturedWallpapers);
 router.get("/official", getOfficialWallpapers);
+
+// update
+router.patch("/update-tags/:id", isAuth, updateWallpaperTag);
 
 module.exports = { wallpaperRoutes: router };

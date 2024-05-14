@@ -289,6 +289,50 @@ const updateWallpapers = async (req, res) => {
   }
 };
 
+const updateWallpaperTag = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoById(req.user._id);
+    if (isExistUser) {
+      if (isExistUser?.profile?.verification_status === "Approved") {
+        const result = await Wallpaper.updateOne(
+          { _id: req.params.id, user: req.user._id },
+          {
+            $set: req.body,
+          },
+          { new: false }
+        );
+        res.status(200).json({
+          status: 200,
+          success: true,
+          message: "Wallpaper Created Successfully",
+          data: result,
+        });
+      } else {
+        res.status(201).json({
+          status: 201,
+          success: false,
+          type: "verification",
+          message: "Profile Not Verified",
+        });
+      }
+    } else {
+      res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User Not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 const deleteWallpapersByIds = async (req, res) => {
   try {
     const isExistUser = await getUserInfoById(req.user._id);
@@ -431,4 +475,5 @@ module.exports = {
   getPopularWallpapers,
   getFeaturedWallpapers,
   getOfficialWallpapers,
+  updateWallpaperTag,
 };
