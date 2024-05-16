@@ -11,6 +11,7 @@ const {
   getFeaturedWallpapers,
   getOfficialWallpapers,
   updateWallpaperTag,
+  addNewViewById,
 } = require("./wallpaper.controller");
 const { isAuth } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -36,5 +37,6 @@ router.get("/official", getOfficialWallpapers);
 
 // update
 router.patch("/update-tags/:id", isAuth, updateWallpaperTag);
+router.patch("/view-increment/:wallpaperId", isAuth, addNewViewById);
 
 module.exports = { wallpaperRoutes: router };

@@ -42,13 +42,22 @@ const wallpaperSchema = new Schema(
       type: Object,
       width: {
         type: Number,
-        required: false,
+        required: true,
       },
       height: {
         type: Number,
-        required: false,
+        required: true,
       },
-      required: false,
+      required: true,
+    },
+    size: {
+      type: Number,
+      required: true,
+    },
+    view: {
+      type: Number,
+      default: 0,
+      required: true,
     },
     tags: {
       type: [String],

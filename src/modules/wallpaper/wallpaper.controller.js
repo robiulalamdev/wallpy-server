@@ -428,6 +428,28 @@ const getOfficialWallpapers = async (req, res) => {
   }
 };
 
+const addNewViewById = async (req, res) => {
+  try {
+    const result = await Wallpaper.updateOne(
+      { _id: req.params.wallpaperId },
+      { $inc: { view: 1 } }
+    );
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Wallpaper View Successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createWallpapers,
   getWallpapers,
@@ -440,4 +462,5 @@ module.exports = {
   getFeaturedWallpapers,
   getOfficialWallpapers,
   updateWallpaperTag,
+  addNewViewById,
 };
