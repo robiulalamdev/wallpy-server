@@ -1,5 +1,43 @@
 const { Schema, model } = require("mongoose");
 
+const socialSchema = new Schema(
+  {
+    twitter: {
+      type: String,
+      required: false,
+    },
+    behance: {
+      type: String,
+      required: false,
+    },
+    dribbble: {
+      type: String,
+      required: false,
+    },
+    instagram: {
+      type: String,
+      required: false,
+    },
+    discord: {
+      type: String,
+      required: false,
+    },
+    deviantart: {
+      type: String,
+      required: false,
+    },
+    reddit: {
+      type: String,
+      required: false,
+    },
+    twitch: {
+      type: String,
+      required: false,
+    },
+  },
+  { _id: false }
+);
+
 const userProfileSchema = new Schema(
   {
     user: {
@@ -45,6 +83,20 @@ const userProfileSchema = new Schema(
     },
     proof_of_identity: {
       type: String,
+      required: false,
+    },
+    socials: {
+      type: socialSchema,
+      default: {
+        twitter: "",
+        behance: "",
+        dribbble: "",
+        instagram: "",
+        discord: "",
+        deviantart: "",
+        reddit: "",
+        twitch: "",
+      },
       required: false,
     },
   },

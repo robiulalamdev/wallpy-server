@@ -38,6 +38,18 @@ const wallpaperSchema = new Schema(
       enum: WALLPAPER_ENUMS.SCREEN_TYPE,
       required: false,
     },
+    dimensions: {
+      type: Object,
+      width: {
+        type: Number,
+        required: false,
+      },
+      height: {
+        type: Number,
+        required: false,
+      },
+      required: false,
+    },
     tags: {
       type: [String],
       required: false,

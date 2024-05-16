@@ -10,6 +10,7 @@ const {
 } = require("../../helpers/sendEmailHelper");
 const Profile = require("../profile/profile.model");
 const { updateProfileBySetMethod } = require("../profile/profile.service");
+const Wallpaper = require("../wallpaper/wallpaper.model");
 const User = require("./user.model");
 const {
   getUsername,
@@ -479,6 +480,10 @@ const getPublicUserInfo = async (req, res) => {
 
 const updateProfileTabInfo = async (req, res) => {
   try {
+    let socials = null;
+    if (req.body.socials) {
+      socials = JSON.parse(req.body.socials);
+    }
     const isExistUser = await getUserInfoById(req.user?._id);
     if (isExistUser) {
       const isExistUsername = await getUserByUsername(req.body.username);
@@ -494,6 +499,9 @@ const updateProfileTabInfo = async (req, res) => {
         });
       } else {
         const profileData = {};
+        if (socials) {
+          profileData["socials"] = socials;
+        }
         if (req.files.profile_image) {
           profileData["profile_image"] = req.files.profile_image[0].path;
         }
@@ -633,6 +641,40 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const getProfileActivity = async (req, res) => {
+  try {
+    const result = await Wallpaper.countDocuments({
+      user: req.params.id,
+      status: "Published",
+    });
+
+    const lastActive = await Wallpaper.findOne({ user: req.params.id })
+      .sort({ _id: -1 })
+      .limit(1)
+      .populate({ path: "user", select: "createdAt" })
+      .select("createdAt user");
+
+    // Return the combined data
+    return res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Profile Activity retrieved successfully",
+      data: {
+        uploadTotal: result,
+        lastActive: lastActive?.createdAt,
+        memberSince: lastActive?.user?.createdAt,
+      },
+    });
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "Profile Activity Retrieve Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -646,4 +688,5 @@ module.exports = {
   updateCredentialsTabInfo,
   getPublicUserInfo,
   getAllUsers,
+  getProfileActivity,
 };
