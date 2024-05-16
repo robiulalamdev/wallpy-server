@@ -10,35 +10,26 @@ const createWallpapers = async (req, res) => {
   try {
     const isExistUser = await getUserInfoById(req.user._id);
     if (isExistUser) {
-      if (isExistUser?.profile?.verification_status === "Approved") {
-        if (req.files && req.files.length > 0) {
-          const wallpapers = await wallpapersMake(
-            req.files,
-            isExistUser?._id?.toString()
-          );
-          if (wallpapers?.length > 0) {
-            const result = await Wallpaper.insertMany(wallpapers);
-            res.status(200).json({
-              status: 200,
-              success: true,
-              message: "Wallpaper Created Successfully",
-              data: result,
-            });
-          } else {
-            res.status(400).json({
-              status: 400,
-              success: false,
-              message: "No wallpapers uploaded",
-            });
-          }
+      if (req.files && req.files.length > 0) {
+        const wallpapers = await wallpapersMake(
+          req.files,
+          isExistUser?._id?.toString()
+        );
+        if (wallpapers?.length > 0) {
+          const result = await Wallpaper.insertMany(wallpapers);
+          res.status(200).json({
+            status: 200,
+            success: true,
+            message: "Wallpaper Created Successfully",
+            data: result,
+          });
+        } else {
+          res.status(400).json({
+            status: 400,
+            success: false,
+            message: "No wallpapers uploaded",
+          });
         }
-      } else {
-        res.status(201).json({
-          status: 201,
-          success: false,
-          type: "verification",
-          message: "Profile Not Verified",
-        });
       }
     } else {
       res.status(404).json({
@@ -253,27 +244,18 @@ const updateWallpapers = async (req, res) => {
   try {
     const isExistUser = await getUserInfoById(req.user._id);
     if (isExistUser) {
-      if (isExistUser?.profile?.verification_status === "Approved") {
-        const result = await Wallpaper.updateMany(
-          { _id: { $in: req.body?.ids }, user: req.user._id },
-          {
-            $set: req.body.updateData,
-          },
-          { new: false }
-        );
-        res.status(200).json({
-          status: 200,
-          success: true,
-          message: "Wallpaper Created Successfully",
-        });
-      } else {
-        res.status(201).json({
-          status: 201,
-          success: false,
-          type: "verification",
-          message: "Profile Not Verified",
-        });
-      }
+      const result = await Wallpaper.updateMany(
+        { _id: { $in: req.body?.ids }, user: req.user._id },
+        {
+          $set: req.body.updateData,
+        },
+        { new: false }
+      );
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Wallpaper Created Successfully",
+      });
     } else {
       res.status(404).json({
         status: 404,
@@ -296,28 +278,19 @@ const updateWallpaperTag = async (req, res) => {
   try {
     const isExistUser = await getUserInfoById(req.user._id);
     if (isExistUser) {
-      if (isExistUser?.profile?.verification_status === "Approved") {
-        const result = await Wallpaper.updateOne(
-          { _id: req.params.id, user: req.user._id },
-          {
-            $set: req.body,
-          },
-          { new: false }
-        );
-        res.status(200).json({
-          status: 200,
-          success: true,
-          message: "Wallpaper Created Successfully",
-          data: result,
-        });
-      } else {
-        res.status(201).json({
-          status: 201,
-          success: false,
-          type: "verification",
-          message: "Profile Not Verified",
-        });
-      }
+      const result = await Wallpaper.updateOne(
+        { _id: req.params.id, user: req.user._id },
+        {
+          $set: req.body,
+        },
+        { new: false }
+      );
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Wallpaper Created Successfully",
+        data: result,
+      });
     } else {
       res.status(404).json({
         status: 404,
@@ -340,25 +313,16 @@ const deleteWallpapersByIds = async (req, res) => {
   try {
     const isExistUser = await getUserInfoById(req.user._id);
     if (isExistUser) {
-      if (isExistUser?.profile?.verification_status === "Approved") {
-        const result = await Wallpaper.deleteMany({
-          _id: { $in: req.body.ids },
-          user: req.user._id,
-        });
-        res.status(200).json({
-          status: 200,
-          success: true,
-          message: "Wallpaper Created Successfully",
-          data: result,
-        });
-      } else {
-        res.status(201).json({
-          status: 201,
-          success: false,
-          type: "verification",
-          message: "Profile Not Verified",
-        });
-      }
+      const result = await Wallpaper.deleteMany({
+        _id: { $in: req.body.ids },
+        user: req.user._id,
+      });
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Wallpaper Created Successfully",
+        data: result,
+      });
     } else {
       res.status(404).json({
         status: 404,
@@ -440,11 +404,8 @@ const getFeaturedWallpapers = async (req, res) => {
 
 const getOfficialWallpapers = async (req, res) => {
   try {
-    const profiles = await Profile.find({ verification_status: "Approved" })
-      .sort({ _id: -1 })
-      .limit(50);
+    const profiles = await Profile.find({}).sort({ _id: -1 }).limit(50);
     const ids = await profiles?.map((pro) => pro?.user);
-    console.log(ids);
     const result = await Wallpaper.find({
       user: { $in: ids },
       status: WALLPAPER_ENUMS.STATUS[1],

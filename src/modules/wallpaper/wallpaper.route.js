@@ -19,7 +19,7 @@ const router = express.Router();
 router.post(
   "/create-wallpapers",
   isAuth,
-  upload.array("wallpaper", 6),
+  upload.array("wallpaper", 16),
   handleMulterError,
   createWallpapers
 );
