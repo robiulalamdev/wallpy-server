@@ -450,6 +450,83 @@ const addNewViewById = async (req, res) => {
   }
 };
 
+// get search wallpapers with filter and pagination
+const getSearchAndFilterWallpapers = async (req, res) => {
+  try {
+    let query = { status: WALLPAPER_ENUMS.STATUS[1] };
+
+    if (req.query.search) {
+      const searchRegex = new RegExp(req.query.search, "i");
+      query.$or = [
+        { author: { $regex: searchRegex } },
+        { source: { $regex: searchRegex } },
+        { wallpaper: { $regex: searchRegex } },
+        { screen_type: { $regex: searchRegex } },
+        { classification: { $regex: searchRegex } },
+        { type: { $regex: searchRegex } },
+        { tags: { $elemMatch: { $regex: searchRegex } } },
+      ];
+    }
+
+    if (req.query.type) {
+      query["type"] = req.query.type;
+    }
+    if (req.query.author) {
+      query["author"] = req.query.author;
+    }
+    if (req.query.source) {
+      query["source"] = req.query.source;
+    }
+    if (req.query.wallpaper) {
+      query["wallpaper"] = req.query.wallpaper;
+    }
+    if (req.query.wallpaper) {
+      query["wallpaper"] = req.query.wallpaper;
+    }
+    if (req.query.screen_type) {
+      query["screen_type"] = req.query.screen_type;
+    }
+    if (req.query.classification) {
+      query["classification"] = req.query.classification;
+    }
+
+    let { page = 1, limit = 60, sortBy = "_id", sortOrder = "asc" } = req.query;
+
+    page = parseInt(page);
+    limit = parseInt(limit);
+
+    let sort = {};
+    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+
+    const total = await Wallpaper.countDocuments(query);
+    const results = await Wallpaper.find(query)
+      .sort(sort)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Wallpapers Retrieved Successfully",
+      data: {
+        data: results,
+        meta: {
+          page,
+          limit,
+          total,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createWallpapers,
   getWallpapers,
@@ -463,4 +540,5 @@ module.exports = {
   getOfficialWallpapers,
   updateWallpaperTag,
   addNewViewById,
+  getSearchAndFilterWallpapers,
 };

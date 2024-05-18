@@ -12,6 +12,7 @@ const {
   getOfficialWallpapers,
   updateWallpaperTag,
   addNewViewById,
+  getSearchAndFilterWallpapers,
 } = require("./wallpaper.controller");
 const { isAuth } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -27,6 +28,7 @@ router.post(
 router.get("/", isAuth, getWallpapers);
 router.get("/profile-wallpapers/:userId", getWallpapersByUserId);
 router.get("/public", getWallpapersBySearch);
+router.get("/search-all", getSearchAndFilterWallpapers);
 router.get("/slug/:slug", getWallpaperBySlug);
 router.patch("/updates", isAuth, updateWallpapers);
 router.delete("/deletes", isAuth, deleteWallpapersByIds);
