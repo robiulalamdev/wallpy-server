@@ -75,6 +75,16 @@ const getUserById = async (id) => {
   return result;
 };
 
+const getUserAndProfileById = async (id) => {
+  const result = await User.findById({ _id: id }).select(
+    "username name email role"
+  );
+  const profile = await Profile.findOne({
+    user: result?._id.toString(),
+  }).select("profile_image");
+  return { ...result.toObject(), profile_image: profile?.profile_image };
+};
+
 const getUserByEmail = async (email) => {
   const result = await User.findOne({ email: email });
   return result;
@@ -103,4 +113,5 @@ module.exports = {
   getUserByEmail,
   getUserInfoByUsername,
   getUserById,
+  getUserAndProfileById,
 };

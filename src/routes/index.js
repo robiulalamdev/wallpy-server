@@ -7,6 +7,10 @@ const { favoriteRoutes } = require("../modules/favorite/favorite.route");
 const { collectionRoutes } = require("../modules/collection/collection.route");
 const { helperRoutes } = require("../modules/helper/helper.route");
 const { reportRoutes } = require("../modules/report/report.route");
+const { chatRoutes } = require("../modules/conversations/chat/chat.route");
+const {
+  messageRoutes,
+} = require("../modules/conversations/message/message.route");
 const router = express.Router();
 
 const moduleRoutes = [
@@ -41,6 +45,14 @@ const moduleRoutes = [
   {
     path: "/reports",
     route: reportRoutes,
+  },
+  {
+    path: "/chats",
+    route: chatRoutes,
+  },
+  {
+    path: "/messages",
+    route: messageRoutes,
   },
 ];
 
