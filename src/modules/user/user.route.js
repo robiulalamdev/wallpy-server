@@ -13,6 +13,7 @@ const {
   getPublicUserInfo,
   getAllUsers,
   getProfileActivity,
+  getVerifiedArtists,
 } = require("./user.controller");
 const { isAuth } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -46,5 +47,6 @@ router.patch(
 router.patch("/update-credentials-tab", isAuth, updateCredentialsTabInfo);
 router.get("/all", getAllUsers);
 router.get("/profile-activity/:id", getProfileActivity);
+router.get("/verified-artists", getVerifiedArtists);
 
 module.exports = { userRoutes: router };

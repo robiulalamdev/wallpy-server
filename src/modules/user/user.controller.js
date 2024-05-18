@@ -675,6 +675,44 @@ const getProfileActivity = async (req, res) => {
   }
 };
 
+const getVerifiedArtists = async (req, res) => {
+  try {
+    const result = await Profile.find({
+      profile_type: "Artist",
+      $or: [
+        { verification_status: "Approved" },
+        { verification_status: "Pending" },
+      ],
+    })
+      .select("profile_image verification_status name profile_type -_id")
+      .populate("user", "name username")
+      .sort({ _id: -1 })
+      .limit(5);
+
+    const artists = result.map((profile) => {
+      return {
+        ...profile?.user.toObject(),
+        profile: { ...profile.toObject(), user: profile?.user?._id },
+      };
+    });
+
+    // Return the combined data
+    return res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Verified Artists Retrieved successfully",
+      data: artists,
+    });
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "Verified Artists Retrieve Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -689,4 +727,5 @@ module.exports = {
   getPublicUserInfo,
   getAllUsers,
   getProfileActivity,
+  getVerifiedArtists,
 };
