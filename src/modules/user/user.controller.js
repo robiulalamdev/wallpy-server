@@ -681,7 +681,7 @@ const getVerifiedArtists = async (req, res) => {
       profile_type: "Artist",
       $or: [
         { verification_status: "Approved" },
-        { verification_status: "Pending" },
+        // { verification_status: "Pending" },
       ],
     })
       .select("profile_image verification_status name profile_type -_id")
