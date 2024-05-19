@@ -181,7 +181,7 @@ const getWallpapersBySearch = async (req, res) => {
       ];
     }
 
-    if (req.query.type) {
+    if (req.query.type && req.query.type.toLowerCase() !== "all") {
       query["type"] = req.query.type;
     }
     if (req.query.author) {
@@ -203,13 +203,65 @@ const getWallpapersBySearch = async (req, res) => {
       query["classification"] = req.query.classification;
     }
 
-    let { page = 1, limit = 60, sortBy = "_id", sortOrder = "asc" } = req.query;
+    let {
+      page = 1,
+      limit = 60,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+      tn = "trending",
+    } = req.query;
+
+    let sort = {};
+    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
 
     page = parseInt(page);
     limit = parseInt(limit);
 
-    let sort = {};
-    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+    if (tn?.toLowerCase() === "trending") {
+      const favoritesCounts = await Favorite.aggregate([
+        { $match: {} },
+        { $group: { _id: "$wallpaper", count: { $sum: 1 } } },
+      ]);
+
+      const wallpaperFavoritesMap = favoritesCounts.reduce((acc, favorite) => {
+        acc[favorite._id] = favorite.count;
+        return acc;
+      }, {});
+
+      const wallpapers = await Wallpaper.find(query);
+
+      const sortedWallpapers = wallpapers.sort((a, b) => {
+        const aFavorites = wallpaperFavoritesMap[a._id] || 0;
+        const bFavorites = wallpaperFavoritesMap[b._id] || 0;
+        const aScore = a.view + aFavorites;
+        const bScore = b.view + bFavorites;
+        return sortOrder.toLowerCase() === "asc"
+          ? aScore - bScore
+          : bScore - aScore;
+      });
+
+      const total = sortedWallpapers.length;
+      const paginatedResults = sortedWallpapers.slice(
+        (page - 1) * limit,
+        page * limit
+      );
+
+      return res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Wallpapers Retrieved Successfully",
+        data: {
+          data: paginatedResults,
+          meta: {
+            page,
+            limit,
+            total,
+          },
+        },
+      });
+    } else if (tn?.toLowerCase() === "new") {
+      sort["createdAt"] = -1; // Newest first
+    }
 
     const total = await Wallpaper.countDocuments(query);
     const results = await Wallpaper.find(query)
