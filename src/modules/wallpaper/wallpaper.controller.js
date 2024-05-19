@@ -451,10 +451,12 @@ const addNewViewById = async (req, res) => {
 };
 
 // get search wallpapers with filter and pagination
+
 const getSearchAndFilterWallpapers = async (req, res) => {
   try {
     let query = { status: WALLPAPER_ENUMS.STATUS[1] };
 
+    // Text search
     if (req.query.search) {
       const searchRegex = new RegExp(req.query.search, "i");
       query.$or = [
@@ -468,35 +470,181 @@ const getSearchAndFilterWallpapers = async (req, res) => {
       ];
     }
 
-    if (req.query.type) {
-      query["type"] = req.query.type;
+    // Filters
+    if (req.query.type && req.query.type.toLowerCase() !== "all") {
+      query["type"] = { $regex: new RegExp(req.query.type, "i") };
     }
     if (req.query.author) {
-      query["author"] = req.query.author;
+      query["author"] = { $regex: new RegExp(req.query.author, "i") };
     }
     if (req.query.source) {
-      query["source"] = req.query.source;
+      query["source"] = { $regex: new RegExp(req.query.source, "i") };
     }
     if (req.query.wallpaper) {
-      query["wallpaper"] = req.query.wallpaper;
-    }
-    if (req.query.wallpaper) {
-      query["wallpaper"] = req.query.wallpaper;
+      query["wallpaper"] = { $regex: new RegExp(req.query.wallpaper, "i") };
     }
     if (req.query.screen_type) {
-      query["screen_type"] = req.query.screen_type;
+      query["screen_type"] = { $regex: new RegExp(req.query.screen_type, "i") };
     }
     if (req.query.classification) {
-      query["classification"] = req.query.classification;
+      query["classification"] = {
+        $regex: new RegExp(req.query.classification, "i"),
+      };
+    }
+    if (req.query.width) {
+      query["dimensions.width"] = parseInt(req.query.width);
+    }
+    if (req.query.height) {
+      query["dimensions.height"] = parseInt(req.query.height);
     }
 
-    let { page = 1, limit = 60, sortBy = "_id", sortOrder = "asc" } = req.query;
+    // Date filters
+    const currentDate = new Date();
+    let startDate;
+
+    if (req.query.date) {
+      switch (req.query.date.toLowerCase()) {
+        case "today":
+          startDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000); // Last 24 hours
+          endDate = currentDate; // Current date/time
+          break;
+        case "this week":
+          startDate = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000); // Last 7 days
+          endDate = currentDate; // Current date/time
+          break;
+        case "this month":
+          startDate = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate() - 30
+          ); // Last 30 days
+          endDate = currentDate; // Current date/time
+          break;
+        case "this year":
+          startDate = new Date(
+            currentDate.getFullYear() - 1,
+            currentDate.getMonth(),
+            currentDate.getDate()
+          ); // Last 1 year
+          endDate = currentDate; // Current date/time
+          break;
+        case "all time":
+          startDate = new Date(0); // Unix epoch start date
+          endDate = currentDate; // Current date/time
+          break;
+        default:
+          startDate = new Date(0); // Default to all time if unknown value
+          endDate = currentDate; // Current date/time
+      }
+
+      query["createdAt"] = { $gte: startDate, $lte: endDate };
+    }
+
+    // Pagination
+    let {
+      page = 1,
+      limit = 60,
+      sort_by = "",
+      sortOrder = "desc",
+      tn = "trending",
+    } = req.query;
 
     page = parseInt(page);
     limit = parseInt(limit);
 
     let sort = {};
-    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+
+    // Sorting logic for tn and sort_by
+
+    if (tn?.toLowerCase() === "trending") {
+      const favoritesCounts = await Favorite.aggregate([
+        { $match: {} },
+        { $group: { _id: "$wallpaper", count: { $sum: 1 } } },
+      ]);
+
+      const wallpaperFavoritesMap = favoritesCounts.reduce((acc, favorite) => {
+        acc[favorite._id] = favorite.count;
+        return acc;
+      }, {});
+
+      const wallpapers = await Wallpaper.find(query);
+
+      const sortedWallpapers = wallpapers.sort((a, b) => {
+        const aFavorites = wallpaperFavoritesMap[a._id] || 0;
+        const bFavorites = wallpaperFavoritesMap[b._id] || 0;
+        const aScore = a.view + aFavorites;
+        const bScore = b.view + bFavorites;
+        return sortOrder.toLowerCase() === "asc"
+          ? aScore - bScore
+          : bScore - aScore;
+      });
+
+      const total = sortedWallpapers.length;
+      const paginatedResults = sortedWallpapers.slice(
+        (page - 1) * limit,
+        page * limit
+      );
+
+      return res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Wallpapers Retrieved Successfully",
+        data: {
+          data: paginatedResults,
+          meta: {
+            page,
+            limit,
+            total,
+          },
+        },
+      });
+    } else if (tn?.toLowerCase() === "new") {
+      sort["createdAt"] = -1; // Newest first
+    }
+
+    if (sort_by?.toLowerCase() === "views") {
+      sort["view"] = sortOrder.toLowerCase() === "asc" ? 1 : -1;
+    } else if (sort_by?.toLowerCase() === "favorites") {
+      const favoritesCounts = await Favorite.aggregate([
+        { $match: {} },
+        { $group: { _id: "$wallpaper", count: { $sum: 1 } } },
+      ]);
+
+      const wallpaperFavoritesMap = favoritesCounts.reduce((acc, favorite) => {
+        acc[favorite._id] = favorite.count;
+        return acc;
+      }, {});
+
+      const wallpapers = await Wallpaper.find(query);
+
+      const sortedWallpapers = wallpapers.sort((a, b) => {
+        const aFavorites = wallpaperFavoritesMap[a._id] || 0;
+        const bFavorites = wallpaperFavoritesMap[b._id] || 0;
+        return sortOrder.toLowerCase() === "asc"
+          ? aFavorites - bFavorites
+          : bFavorites - aFavorites;
+      });
+
+      const total = sortedWallpapers.length;
+      const paginatedResults = sortedWallpapers.slice(
+        (page - 1) * limit,
+        page * limit
+      );
+
+      return res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Wallpapers Retrieved Successfully",
+        data: {
+          data: paginatedResults,
+          meta: {
+            page,
+            limit,
+            total,
+          },
+        },
+      });
+    }
 
     const total = await Wallpaper.countDocuments(query);
     const results = await Wallpaper.find(query)
