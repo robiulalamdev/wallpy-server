@@ -25,6 +25,12 @@ const userSettingsSchema = new Schema(
       default: true,
       required: false,
     },
+    acceptCommunityRules: {
+      type: Boolean,
+      enum: [true, false],
+      default: false,
+      required: false,
+    },
     blacklist_tags: {
       type: [String],
       required: false,
