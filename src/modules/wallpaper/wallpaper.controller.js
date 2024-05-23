@@ -331,7 +331,8 @@ const updateWallpaperTag = async (req, res) => {
     const isExistUser = await getUserInfoById(req.user._id);
     if (isExistUser) {
       const result = await Wallpaper.updateOne(
-        { _id: req.params.id, user: req.user._id },
+        { _id: req.params.id },
+        // { _id: req.params.id, user: req.user._id },
         {
           $set: req.body,
         },
