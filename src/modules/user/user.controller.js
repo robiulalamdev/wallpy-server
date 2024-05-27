@@ -508,9 +508,8 @@ const updateProfileTabInfo = async (req, res) => {
         if (req.files.banner) {
           profileData["banner"] = req.files.banner[0].path;
         }
-        if (req.body.bio) {
-          profileData["bio"] = req.body.bio;
-        }
+        profileData["bio"] = req.body.bio || "";
+
         const updateObject = { username: req.body.username };
         await updateUserWithSetMethod(
           updateObject,

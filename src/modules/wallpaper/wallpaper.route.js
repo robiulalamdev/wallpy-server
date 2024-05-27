@@ -15,7 +15,7 @@ const {
   getSearchAndFilterWallpapers,
   getPopularTags,
 } = require("./wallpaper.controller");
-const { isAuth } = require("../../middlewares/auth");
+const { isAuth, isSetUser } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
 const router = express.Router();
 
@@ -28,13 +28,13 @@ router.post(
 );
 router.get("/", isAuth, getWallpapers);
 router.get("/profile-wallpapers/:userId", getWallpapersByUserId);
-router.get("/public", getWallpapersBySearch);
+router.get("/public", isSetUser, getWallpapersBySearch);
 router.get("/search-all", getSearchAndFilterWallpapers);
 router.get("/slug/:slug", getWallpaperBySlug);
 router.patch("/updates", isAuth, updateWallpapers);
 router.delete("/deletes", isAuth, deleteWallpapersByIds);
 // get popular wallpapers
-router.get("/popular", getPopularWallpapers);
+router.get("/popular", isSetUser, getPopularWallpapers);
 router.get("/featured", getFeaturedWallpapers);
 router.get("/official", getOfficialWallpapers);
 router.get("/popular-tags", getPopularTags);

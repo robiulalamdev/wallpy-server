@@ -1,5 +1,6 @@
 const Favorite = require("../favorite/favorite.model");
 const Profile = require("../profile/profile.model");
+const Settings = require("../settings/settings.model");
 const User = require("../user/user.model");
 const { getUserInfoById } = require("../user/user.service");
 const { WALLPAPER_ENUMS } = require("./wallpaper.constant");
@@ -177,32 +178,38 @@ const getWallpapersBySearch = async (req, res) => {
         { source: { $regex: searchRegex } },
         { wallpaper: { $regex: searchRegex } },
         { screen_type: { $regex: searchRegex } },
-        { classification: { $regex: searchRegex } },
         { type: { $regex: searchRegex } },
         { tags: { $elemMatch: { $regex: searchRegex } } },
       ];
     }
 
+    // Filters
+    const andQuery = [];
     if (req.query.type && req.query.type.toLowerCase() !== "all") {
-      query["type"] = req.query.type;
+      andQuery.push({
+        type: { $regex: new RegExp(`^${req.query.type}$`, "i") },
+      });
     }
-    if (req.query.author) {
-      query["author"] = req.query.author;
-    }
-    if (req.query.source) {
-      query["source"] = req.query.source;
-    }
-    if (req.query.wallpaper) {
-      query["wallpaper"] = req.query.wallpaper;
-    }
-    if (req.query.wallpaper) {
-      query["wallpaper"] = req.query.wallpaper;
-    }
+
     if (req.query.screen_type) {
-      query["screen_type"] = req.query.screen_type;
+      andQuery.push({
+        screen_type: { $regex: new RegExp(`^${req.query.screen_type}$`, "i") },
+      });
     }
-    if (req.query.classification) {
-      query["classification"] = req.query.classification;
+
+    if (req.user?._id) {
+      const settings = await Settings.findOne({ user: req.user?._id }).select(
+        "nsfw"
+      );
+      if (settings?.nsfw === false) {
+        andQuery.push({
+          classification: { $ne: "NSFW" },
+        });
+      }
+    }
+
+    if (Object.entries(andQuery).length > 0) {
+      query.$and = andQuery;
     }
 
     let {
@@ -414,10 +421,21 @@ const getPopularWallpapers = async (req, res) => {
     ]);
 
     const ids = popularWallpapers.map((entry) => entry._id);
-    const result = await Wallpaper.find({
+    const query = {
       _id: { $in: ids },
       status: WALLPAPER_ENUMS.STATUS[1],
-    });
+    };
+
+    if (req.user?._id) {
+      const settings = await Settings.findOne({ user: req.user?._id }).select(
+        "nsfw"
+      );
+      if (settings?.nsfw === false) {
+        query["classification"] = { $ne: "NSFW" };
+      }
+    }
+
+    const result = await Wallpaper.find(query);
     res.status(200).json({
       status: 200,
       success: false,
@@ -519,38 +537,41 @@ const getSearchAndFilterWallpapers = async (req, res) => {
         { source: { $regex: searchRegex } },
         { wallpaper: { $regex: searchRegex } },
         { screen_type: { $regex: searchRegex } },
-        { classification: { $regex: searchRegex } },
         { type: { $regex: searchRegex } },
         { tags: { $elemMatch: { $regex: searchRegex } } },
       ];
     }
 
     // Filters
+    const andQuery = [];
     if (req.query.type && req.query.type.toLowerCase() !== "all") {
-      query["type"] = { $regex: new RegExp(req.query.type, "i") };
+      andQuery.push({
+        type: { $regex: new RegExp(`^${req.query.type}$`, "i") },
+      });
     }
-    if (req.query.author) {
-      query["author"] = { $regex: new RegExp(req.query.author, "i") };
-    }
-    if (req.query.source) {
-      query["source"] = { $regex: new RegExp(req.query.source, "i") };
-    }
-    if (req.query.wallpaper) {
-      query["wallpaper"] = { $regex: new RegExp(req.query.wallpaper, "i") };
-    }
+
     if (req.query.screen_type) {
-      query["screen_type"] = { $regex: new RegExp(req.query.screen_type, "i") };
+      andQuery.push({
+        screen_type: { $regex: new RegExp(`^${req.query.screen_type}$`, "i") },
+      });
     }
+
     if (req.query.classification) {
-      query["classification"] = {
-        $regex: new RegExp(req.query.classification, "i"),
-      };
+      andQuery.push({
+        classification: {
+          $regex: new RegExp(`^${req.query.classification}$`, "i"),
+        },
+      });
+    } else {
+      andQuery.push({
+        classification: "SFW",
+      });
     }
     if (req.query.width) {
-      query["dimensions.width"] = parseInt(req.query.width);
+      andQuery.push({ "dimensions.width": parseInt(req.query.width) });
     }
     if (req.query.height) {
-      query["dimensions.height"] = parseInt(req.query.height);
+      andQuery.push({ "dimensions.height": parseInt(req.query.height) });
     }
 
     // Date filters
@@ -592,7 +613,11 @@ const getSearchAndFilterWallpapers = async (req, res) => {
           endDate = currentDate; // Current date/time
       }
 
-      query["createdAt"] = { $gte: startDate, $lte: endDate };
+      andQuery.push({ createdAt: { $gte: startDate, $lte: endDate } });
+    }
+
+    if (Object.entries(andQuery).length > 0) {
+      query.$and = andQuery;
     }
 
     // Pagination
@@ -707,6 +732,7 @@ const getSearchAndFilterWallpapers = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
+    console.log(results);
     res.status(200).json({
       status: 200,
       success: true,
