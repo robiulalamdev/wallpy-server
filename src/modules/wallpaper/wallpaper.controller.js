@@ -206,6 +206,8 @@ const getWallpapersBySearch = async (req, res) => {
           classification: { $ne: "NSFW" },
         });
       }
+    } else {
+      query["classification"] = { $ne: "NSFW" };
     }
 
     if (Object.entries(andQuery).length > 0) {
@@ -433,6 +435,8 @@ const getPopularWallpapers = async (req, res) => {
       if (settings?.nsfw === false) {
         query["classification"] = { $ne: "NSFW" };
       }
+    } else {
+      query["classification"] = { $ne: "NSFW" };
     }
 
     const result = await Wallpaper.find(query);
