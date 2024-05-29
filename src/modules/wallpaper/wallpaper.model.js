@@ -61,6 +61,7 @@ const wallpaperSchema = new Schema(
     },
     tags: {
       type: [String],
+      index: true,
       required: false,
     },
     source: {

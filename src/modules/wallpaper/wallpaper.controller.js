@@ -120,10 +120,30 @@ const getWallpapersByUserId = async (req, res) => {
 
 const getWallpaperBySlug = async (req, res) => {
   try {
-    const result = await Wallpaper.findOne({
+    let query = {
       slug: req.params?.slug,
       status: WALLPAPER_ENUMS.STATUS[1],
-    });
+    };
+
+    if (req.user?._id) {
+      const settings = await Settings.findOne({ user: req.user?._id }).select(
+        "nsfw blacklist_tags"
+      );
+      if (settings?.nsfw === false) {
+        query["classification"] = { $ne: "NSFW" };
+      }
+      if (settings?.blacklist_tags?.length > 0) {
+        query["tags"] = {
+          $not: {
+            $elemMatch: { $in: settings?.blacklist_tags },
+          },
+        };
+      }
+    } else {
+      query["classification"] = { $ne: "NSFW" };
+    }
+
+    const result = await Wallpaper.findOne(query);
     if (result) {
       const getAuthor = await User.findById({
         _id: result?.user?.toString(),
@@ -199,11 +219,20 @@ const getWallpapersBySearch = async (req, res) => {
 
     if (req.user?._id) {
       const settings = await Settings.findOne({ user: req.user?._id }).select(
-        "nsfw"
+        "nsfw blacklist_tags"
       );
       if (settings?.nsfw === false) {
         andQuery.push({
           classification: { $ne: "NSFW" },
+        });
+      }
+      if (settings?.blacklist_tags?.length > 0) {
+        andQuery.push({
+          tags: {
+            $not: {
+              $elemMatch: { $in: settings?.blacklist_tags },
+            },
+          },
         });
       }
     } else {
@@ -430,10 +459,17 @@ const getPopularWallpapers = async (req, res) => {
 
     if (req.user?._id) {
       const settings = await Settings.findOne({ user: req.user?._id }).select(
-        "nsfw"
+        "nsfw blacklist_tags"
       );
       if (settings?.nsfw === false) {
         query["classification"] = { $ne: "NSFW" };
+      }
+      if (settings?.blacklist_tags?.length > 0) {
+        query["tags"] = {
+          $not: {
+            $elemMatch: { $in: settings?.blacklist_tags },
+          },
+        };
       }
     } else {
       query["classification"] = { $ne: "NSFW" };
@@ -560,15 +596,39 @@ const getSearchAndFilterWallpapers = async (req, res) => {
       });
     }
 
-    if (req.query.classification) {
+    let settings = null;
+
+    if (req.user?._id) {
+      settings = await Settings.findOne({ user: req.user?._id }).select(
+        "nsfw blacklist_tags"
+      );
+      if (settings?.nsfw === false) {
+        andQuery.push({
+          classification: { $ne: "NSFW" },
+        });
+      }
+      if (settings?.blacklist_tags?.length > 0) {
+        andQuery.push({
+          tags: {
+            $not: {
+              $elemMatch: { $in: settings?.blacklist_tags },
+            },
+          },
+        });
+      }
+    }
+
+    const classification = req.query.classification || "SFW";
+
+    if (classification === "NSFW" && settings?.nsfw === true) {
       andQuery.push({
-        classification: {
-          $regex: new RegExp(`^${req.query.classification}$`, "i"),
-        },
+        classification: "NSFW",
       });
     } else {
       andQuery.push({
-        classification: "SFW",
+        classification: {
+          $regex: new RegExp(`^${classification}$`, "i"),
+        },
       });
     }
     if (req.query.width) {

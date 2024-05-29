@@ -29,8 +29,8 @@ router.post(
 router.get("/", isAuth, getWallpapers);
 router.get("/profile-wallpapers/:userId", getWallpapersByUserId);
 router.get("/public", isSetUser, getWallpapersBySearch);
-router.get("/search-all", getSearchAndFilterWallpapers);
-router.get("/slug/:slug", getWallpaperBySlug);
+router.get("/search-all", isSetUser, getSearchAndFilterWallpapers);
+router.get("/slug/:slug", isSetUser, getWallpaperBySlug);
 router.patch("/updates", isAuth, updateWallpapers);
 router.delete("/deletes", isAuth, deleteWallpapersByIds);
 // get popular wallpapers
@@ -41,6 +41,6 @@ router.get("/popular-tags", getPopularTags);
 
 // update
 router.patch("/update-tags/:id", isAuth, updateWallpaperTag);
-router.patch("/view-increment/:wallpaperId", isAuth, addNewViewById);
+router.patch("/view-increment/:wallpaperId", addNewViewById);
 
 module.exports = { wallpaperRoutes: router };
