@@ -569,6 +569,8 @@ const getSearchAndFilterWallpapers = async (req, res) => {
   try {
     let query = { status: WALLPAPER_ENUMS.STATUS[1] };
 
+    const tag = req.query.tag;
+
     // Text search
     if (req.query.search) {
       const searchRegex = new RegExp(req.query.search, "i");
@@ -593,6 +595,14 @@ const getSearchAndFilterWallpapers = async (req, res) => {
     if (req.query.screen_type) {
       andQuery.push({
         screen_type: { $regex: new RegExp(`^${req.query.screen_type}$`, "i") },
+      });
+    }
+
+    if (req.query.tag) {
+      andQuery.push({
+        tags: {
+          $elemMatch: { $eq: tag },
+        },
       });
     }
 
