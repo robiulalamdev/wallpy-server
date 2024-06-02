@@ -712,6 +712,113 @@ const getVerifiedArtists = async (req, res) => {
   }
 };
 
+//* Admin controller
+const allUsersInfo = async (req, res) => {
+  try {
+    const page = parseInt(req.query?.page) || 1;
+    const limit = parseInt(req.query?.limit) || 12;
+    const search = req.query?.search || "";
+
+    const skip = (page - 1) * limit;
+
+    // Create the search query
+    const searchQuery = {
+      $or: [
+        { username: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ],
+    };
+
+    // Find users with the search query
+    const result = await User.find(searchQuery)
+      .sort({ _id: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // Count the total number of users matching the search query
+    const total = await User.countDocuments(searchQuery);
+
+    return res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Users Retrieved successfully",
+      data: result,
+      meta: {
+        total: total,
+        page: page,
+        currentTotal: result.length,
+        limit: limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Users Retrieve Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
+const addUser = async (req, res) => {
+  try {
+    const isExistUser = await getUser(req.body.email);
+    if (isExistUser) {
+      res.status(201).json({
+        status: 201,
+        success: false,
+        type: "email",
+        message: "Email already in use",
+      });
+    } else {
+      const isExistUsername = await getUsername(req.body.username);
+      if (isExistUsername) {
+        return res.status(200).json({
+          status: 200,
+          success: false,
+          type: "username",
+          message: "Username already in use",
+        });
+      } else {
+        const createResult = await createNewUser(req.body);
+        res.status(200).json({
+          status: 200,
+          success: true,
+          message: "New User created successfully",
+        });
+      }
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Create Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
+const removeUsersByIds = async (req, res) => {
+  try {
+    const result = await User.deleteMany({
+      _id: { $in: req.body.ids },
+    });
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Users deleted successfully",
+    });
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Delete Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -727,4 +834,7 @@ module.exports = {
   getAllUsers,
   getProfileActivity,
   getVerifiedArtists,
+  allUsersInfo,
+  addUser,
+  removeUsersByIds,
 };

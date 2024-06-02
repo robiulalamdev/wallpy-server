@@ -14,6 +14,9 @@ const {
   getAllUsers,
   getProfileActivity,
   getVerifiedArtists,
+  allUsersInfo,
+  addUser,
+  removeUsersByIds,
 } = require("./user.controller");
 const { isAuth } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -48,5 +51,10 @@ router.patch("/update-credentials-tab", isAuth, updateCredentialsTabInfo);
 router.get("/all", getAllUsers);
 router.get("/profile-activity/:id", getProfileActivity);
 router.get("/verified-artists", getVerifiedArtists);
+
+//* admin Routes
+router.get("/all-users", allUsersInfo);
+router.post("/add-user", addUser);
+router.delete("/remove-users", removeUsersByIds);
 
 module.exports = { userRoutes: router };
