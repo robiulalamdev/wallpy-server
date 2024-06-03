@@ -575,6 +575,8 @@ const updateCredentialsTabInfo = async (req, res) => {
             type: "email",
             message: "Email already in use!",
           });
+        } else {
+          updateData["email"] = req.body?.email;
         }
       }
       const result = await User.findByIdAndUpdate(

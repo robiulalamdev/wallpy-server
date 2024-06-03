@@ -4,6 +4,7 @@ const VARIABLES = require("./config");
 const { routers } = require("./routes");
 const app = express();
 const path = require("path");
+const { getResizeImage } = require("./modules/helper/helper.controller");
 
 // middleware
 // app.use(
@@ -21,5 +22,8 @@ app.use(
 app.use("/api/v1", routers);
 // static file serving
 app.use("/api/v1/uploads", express.static(path.join(__dirname, "../")));
+
+// resize image when loading image
+app.get("/api/v1/assets", getResizeImage);
 
 module.exports = app;

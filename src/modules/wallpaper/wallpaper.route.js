@@ -14,7 +14,6 @@ const {
   addNewViewById,
   getSearchAndFilterWallpapers,
   getPopularTags,
-  getResizeImage,
 } = require("./wallpaper.controller");
 const { isAuth, isSetUser } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -28,7 +27,7 @@ router.post(
   createWallpapers
 );
 router.get("/", isAuth, getWallpapers);
-router.get("/profile-wallpapers/:userId", getWallpapersByUserId);
+router.get("/profile-wallpapers/:userId", isSetUser, getWallpapersByUserId);
 router.get("/public", isSetUser, getWallpapersBySearch);
 router.get("/search-all", isSetUser, getSearchAndFilterWallpapers);
 router.get("/slug/:slug", isSetUser, getWallpaperBySlug);
@@ -43,8 +42,5 @@ router.get("/popular-tags", getPopularTags);
 // update
 router.patch("/update-tags/:id", isAuth, updateWallpaperTag);
 router.patch("/view-increment/:wallpaperId", addNewViewById);
-
-// resize image when loading image
-router.get("/resize", getResizeImage);
 
 module.exports = { wallpaperRoutes: router };

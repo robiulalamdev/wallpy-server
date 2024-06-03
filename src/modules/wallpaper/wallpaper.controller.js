@@ -6,9 +6,6 @@ const { getUserInfoById } = require("../user/user.service");
 const { WALLPAPER_ENUMS } = require("./wallpaper.constant");
 const Wallpaper = require("./wallpaper.model");
 const { wallpapersMake } = require("./wallpaper.service");
-const sharp = require("sharp");
-const fs = require("fs");
-const path = require("path");
 
 const createWallpapers = async (req, res) => {
   try {
@@ -93,10 +90,29 @@ const getWallpapersByUserId = async (req, res) => {
   try {
     const isExistUser = await getUserInfoById(req.params.userId);
     if (isExistUser) {
-      const published = await Wallpaper.find({
+      const query = {
         user: req.params.userId,
         status: WALLPAPER_ENUMS.STATUS[1],
-      }).sort({ _id: -1 });
+      };
+
+      if (req?.user?._id) {
+        const settings = await Settings.findOne({ user: req.user?._id }).select(
+          "nsfw blacklist_tags"
+        );
+        if (settings?.nsfw === false) {
+          query["classification"] = { $ne: "NSFW" };
+        }
+        if (settings?.blacklist_tags?.length > 0) {
+          query["tags"] = {
+            $not: {
+              $elemMatch: { $in: settings?.blacklist_tags },
+            },
+          };
+        }
+      } else {
+        query["classification"] = { $ne: "NSFW" };
+      }
+      const published = await Wallpaper.find(query).sort({ _id: -1 });
       res.status(200).json({
         status: 200,
         success: true,
@@ -864,53 +880,6 @@ const getPopularTags = async (req, res) => {
   }
 };
 
-const getResizeImage = async (req, res) => {
-  const { path: fullImagePath, width, height } = req.query;
-
-  if (!fullImagePath || !width || !height) {
-    return res
-      .status(400)
-      .send("Missing required query parameters: path, width, height");
-  }
-
-  if (!fs.existsSync(fullImagePath)) {
-    return res.status(404).send("Image not found");
-  }
-
-  const widthInt = parseInt(width);
-  const heightInt = parseInt(height);
-
-  try {
-    const imageMetadata = await sharp(fullImagePath).metadata();
-
-    const shouldResize =
-      widthInt < imageMetadata.width || heightInt < imageMetadata.height;
-
-    const resizeOptions = shouldResize
-      ? {
-          width: widthInt,
-          height: heightInt,
-          fit: sharp.fit.inside,
-          background: { r: 255, g: 255, b: 255, alpha: 1 },
-        }
-      : {
-          width: imageMetadata.width,
-          height: imageMetadata.height,
-          fit: sharp.fit.inside,
-          background: { r: 255, g: 255, b: 255, alpha: 1 },
-        };
-
-    const resizedImage = await sharp(fullImagePath)
-      .resize(resizeOptions)
-      .toBuffer();
-
-    res.type("image/jpeg").send(resizedImage);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error processing image");
-  }
-};
-
 module.exports = {
   createWallpapers,
   getWallpapers,
@@ -926,6 +895,4 @@ module.exports = {
   addNewViewById,
   getSearchAndFilterWallpapers,
   getPopularTags,
-  // resize images
-  getResizeImage,
 };
