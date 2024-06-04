@@ -1,5 +1,6 @@
 const { Schema, model } = require("mongoose");
 const { WALLPAPER_ENUMS } = require("./wallpaper.constant");
+const shortid = require("shortid");
 
 const wallpaperSchema = new Schema(
   {

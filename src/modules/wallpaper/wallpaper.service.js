@@ -1,5 +1,7 @@
 const path = require("path");
 const sharp = require("sharp");
+const Wallpaper = require("./wallpaper.model");
+const shortid = require("shortid");
 
 const getImageMetadata = async (filePath) => {
   try {
@@ -14,46 +16,38 @@ const getImageMetadata = async (filePath) => {
   }
 };
 
+const generateShorten = async () => {
+  let slug = shortid.generate();
+  const existing = await Wallpaper.findOne({ slug });
+  if (existing) {
+    let counter = 1;
+    while (true) {
+      const newSlug = `${slug}${counter}`;
+      const slugExists = await Wallpaper.findOne({ slug: newSlug });
+      if (!slugExists) {
+        slug = newSlug;
+        break;
+      }
+      counter++;
+    }
+  }
+  return slug;
+};
+
 const wallpapersMake = async (files, userId) => {
   const wallpapers = [];
   for (let i = 0; i < files.length; i++) {
     const url = files[i]?.path;
     const imageMetadata = await getImageMetadata(url);
     if (url) {
-      let lastDotIndex = url.lastIndexOf(".");
-      if (lastDotIndex !== -1) {
-        let firstSplit = url.substring(0, lastDotIndex).split("\\");
-        if (firstSplit?.length > 1) {
-          const slug = firstSplit[firstSplit.length - 1];
-          wallpapers.push({
-            user: userId,
-            wallpaper: files[i]?.path,
-            slug: slug,
-            dimensions: imageMetadata,
-            size: files[i]?.size,
-          });
-        } else if (url.substring(0, lastDotIndex).split("//")?.length > 2) {
-          const newSplit = url.substring(0, lastDotIndex).split("//");
-          const slug = newSplit[newSplit.length - 1];
-          wallpapers.push({
-            user: userId,
-            wallpaper: files[i]?.path,
-            slug: slug,
-            dimensions: imageMetadata,
-            size: files[i]?.size,
-          });
-        } else {
-          const newSplit = url.substring(0, lastDotIndex).split("/");
-          const slug = newSplit[newSplit.length - 1];
-          wallpapers.push({
-            user: userId,
-            wallpaper: files[i]?.path,
-            slug: slug,
-            dimensions: imageMetadata,
-            size: files[i]?.size,
-          });
-        }
-      }
+      const slug = await generateShorten();
+      wallpapers.push({
+        user: userId,
+        wallpaper: files[i]?.path,
+        slug: slug,
+        dimensions: imageMetadata,
+        size: files[i]?.size,
+      });
     }
   }
   return wallpapers;
