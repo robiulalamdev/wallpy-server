@@ -735,7 +735,16 @@ const allUsersInfo = async (req, res) => {
     const result = await User.find(searchQuery)
       .sort({ _id: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .then(async function (users) {
+        const populateUsers = await Promise.all(
+          users.map(async (user) => {
+            const profileResult = await Profile.findOne({ user: user._id });
+            return { ...user.toObject(), profile: profileResult };
+          })
+        );
+        return populateUsers;
+      });
 
     // Count the total number of users matching the search query
     const total = await User.countDocuments(searchQuery);
