@@ -44,22 +44,20 @@ const getResizeImage = async (req, res) => {
     const widthInt = width ? parseInt(width) : imageMetadata?.width;
     const heightInt = height ? parseInt(height) : imageMetadata?.height;
 
-    const shouldResize =
-      widthInt < imageMetadata.width || heightInt < imageMetadata.height;
+    const resizeOptions = {
+      width: widthInt,
+      height: heightInt,
+      fit: sharp.fit.inside,
+      background: { r: 255, g: 255, b: 255, alpha: 1 },
+    };
 
-    const resizeOptions = shouldResize
-      ? {
-          width: widthInt,
-          height: heightInt,
-          fit: sharp.fit.inside,
-          background: { r: 255, g: 255, b: 255, alpha: 1 },
-        }
-      : {
-          width: imageMetadata.width,
-          height: imageMetadata.height,
-          fit: sharp.fit.inside,
-          background: { r: 255, g: 255, b: 255, alpha: 1 },
-        };
+    if (req.query?.fit === "cover") {
+      resizeOptions["fit"] = "cover";
+    } else if (req.query?.fit === "contain") {
+      resizeOptions["fit"] = "inside";
+    } else if (req.query?.fit === "fill") {
+      resizeOptions["fit"] = "fill";
+    }
 
     const resizedImage = await sharp(fullImagePath)
       .resize(resizeOptions)
