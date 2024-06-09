@@ -961,7 +961,8 @@ const sponsorsWallpapers = async (req, res) => {
     const results = await Wallpaper.find(query)
       .sort({ _id: -1 })
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .populate("user", "username");
 
     res.status(200).json({
       status: 200,
