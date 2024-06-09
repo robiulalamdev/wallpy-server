@@ -880,6 +880,112 @@ const getPopularTags = async (req, res) => {
   }
 };
 
+const sponsorsWallpapers = async (req, res) => {
+  try {
+    let query = { status: WALLPAPER_ENUMS.STATUS[1] };
+
+    if (req.query?.search) {
+      const searchRegex = new RegExp(req.query.search, "i");
+      query.$or = [
+        { author: { $regex: searchRegex } },
+        { source: { $regex: searchRegex } },
+        { wallpaper: { $regex: searchRegex } },
+        { tags: { $elemMatch: { $regex: searchRegex } } },
+      ];
+    }
+
+    // Filters
+    const andQuery = [];
+    if (req.query.type && req.query.type.toLowerCase() !== "all") {
+      andQuery.push({
+        type: { $regex: new RegExp(`^${req.query.type}$`, "i") },
+      });
+    }
+
+    // Date filters
+    const currentDate = new Date();
+    let startDate;
+
+    if (req.query.date) {
+      switch (req.query.date.toLowerCase()) {
+        case "today":
+          startDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000); // Last 24 hours
+          endDate = currentDate; // Current date/time
+          break;
+        case "yesterday":
+          startDate = new Date(currentDate.getTime() - 2 * 24 * 60 * 60 * 1000); // Start of yesterday
+          endDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000); // End of yesterday
+          break;
+        case "this week":
+          startDate = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000); // Last 7 days
+          endDate = currentDate; // Current date/time
+          break;
+        case "this month":
+          startDate = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate() - 30
+          ); // Last 30 days
+          endDate = currentDate; // Current date/time
+          break;
+        case "this year":
+          startDate = new Date(
+            currentDate.getFullYear() - 1,
+            currentDate.getMonth(),
+            currentDate.getDate()
+          ); // Last 1 year
+          endDate = currentDate; // Current date/time
+          break;
+        case "all data":
+          startDate = new Date(0); // Unix epoch start date
+          endDate = currentDate; // Current date/time
+          break;
+        default:
+          startDate = new Date(0); // Default to all time if unknown value
+          endDate = currentDate; // Current date/time
+      }
+
+      andQuery.push({ createdAt: { $gte: startDate, $lte: endDate } });
+    }
+
+    if (Object.entries(andQuery).length > 0) {
+      query.$and = andQuery;
+    }
+
+    let { page = 1, limit = 35 } = req.query;
+
+    page = parseInt(page);
+    limit = parseInt(limit);
+
+    const total = await Wallpaper.countDocuments(query);
+    const results = await Wallpaper.find(query)
+      .sort({ _id: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Wallpapers Retrieved Successfully",
+      data: {
+        data: results,
+        meta: {
+          page,
+          limit,
+          total,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createWallpapers,
   getWallpapers,
@@ -895,4 +1001,7 @@ module.exports = {
   addNewViewById,
   getSearchAndFilterWallpapers,
   getPopularTags,
+
+  // dashboard
+  sponsorsWallpapers,
 };
