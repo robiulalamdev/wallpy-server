@@ -103,7 +103,27 @@ const getAllChats = async (req, res) => {
   }
 };
 
+const removeChatById = async (req, res) => {
+  try {
+    await Chat.deleteOne({ _id: req.params.id });
+    await Message.deleteMany({ chatId: req.params.id });
+
+    res.status(200).json({
+      success: true,
+      message: "Chat deleted successfully",
+      data: null,
+    });
+  } catch (error) {
+    res.status(201).json({
+      success: false,
+      message: "Chat deleted unSuccessfully",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createChat,
   getAllChats,
+  removeChatById,
 };
