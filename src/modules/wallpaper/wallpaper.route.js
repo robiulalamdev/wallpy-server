@@ -15,6 +15,7 @@ const {
   getSearchAndFilterWallpapers,
   getPopularTags,
   sponsorsWallpapers,
+  getWallpapersByTag,
 } = require("./wallpaper.controller");
 const { isAuth, isSetUser } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -39,6 +40,7 @@ router.get("/popular", isSetUser, getPopularWallpapers);
 router.get("/featured", getFeaturedWallpapers);
 router.get("/official", getOfficialWallpapers);
 router.get("/popular-tags", getPopularTags);
+router.get("/tags/:tag", getWallpapersByTag);
 
 // update
 router.patch("/update-tags/:id", isAuth, updateWallpaperTag);

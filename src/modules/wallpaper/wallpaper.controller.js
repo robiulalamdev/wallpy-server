@@ -987,6 +987,76 @@ const sponsorsWallpapers = async (req, res) => {
   }
 };
 
+const getWallpapersByTag = async (req, res) => {
+  try {
+    const { tag } = req.params;
+    const { page = 1, limit = 18 } = req.query;
+
+    const pipeline = [
+      {
+        $match: { tags: { $eq: tag } },
+      },
+      {
+        $facet: {
+          totalView: [{ $group: { _id: null, totalView: { $sum: "$view" } } }],
+          totalWallpapers: [{ $count: "count" }],
+          relatedTags: [
+            { $unwind: "$tags" },
+            { $match: { tags: { $ne: tag } } },
+            { $group: { _id: "$tags", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 50 },
+            { $project: { _id: 0, tag: "$_id" } },
+          ],
+        },
+      },
+    ];
+
+    const result = await Wallpaper.aggregate(pipeline).exec();
+    const wallpapers = await Wallpaper.find({
+      tags: {
+        $elemMatch: { $eq: tag },
+      },
+    })
+      .sort({ _id: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalView =
+      result[0].totalView.length > 0 ? result[0].totalView[0].totalView : 0;
+    const relatedTags = result[0].relatedTags.map((tagObj) => tagObj.tag);
+
+    const total = await Wallpaper.countDocuments({
+      tags: {
+        $elemMatch: { $eq: tag },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Wallpapers retrieved successfully",
+      data: {
+        relatedTags,
+        totalView,
+        totalWallpapers: total,
+        data: wallpapers,
+        meta: {
+          total: total,
+          page: Number(page),
+          limit: Number(limit),
+        },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createWallpapers,
   getWallpapers,
@@ -1002,6 +1072,7 @@ module.exports = {
   addNewViewById,
   getSearchAndFilterWallpapers,
   getPopularTags,
+  getWallpapersByTag,
 
   // dashboard
   sponsorsWallpapers,
