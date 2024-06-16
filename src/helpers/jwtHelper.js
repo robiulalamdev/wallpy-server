@@ -10,7 +10,7 @@ const generateToken = async (user) => {
 
 const generateVerifyToken = async (data) => {
   return jwt.sign(data, VARIABLES.ACCESS_TOKEN_SECRET, {
-    expiresIn: "7days",
+    expiresIn: "48h",
   });
 };
 
