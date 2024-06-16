@@ -5,6 +5,7 @@ const VARIABLES = {
   // Server
   PORT: process.env.PORT,
   NODE_ENV: process.env.NODE_ENV,
+  SERVER_URL: process.env.SERVER_URL,
 
   // Database
   DATABASE_URL: process.env.DATABASE_URL,
