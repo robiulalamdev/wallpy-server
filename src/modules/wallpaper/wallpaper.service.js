@@ -45,6 +45,7 @@ const wallpapersMake = async (files, userId) => {
         user: userId,
         wallpaper: files[i]?.path,
         slug: slug,
+        name: files[i]?.name,
         dimensions: imageMetadata,
         size: files[i]?.size,
       });

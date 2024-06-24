@@ -1,4 +1,5 @@
 const { Schema, model } = require("mongoose");
+const { ROLE_DATA } = require("./user.constants");
 
 const userSchema = new Schema(
   {
@@ -23,7 +24,7 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ["Admin", "User"],
+      enum: [ROLE_DATA.USER, ROLE_DATA.ADMIN, ROLE_DATA.MOD, ROLE_DATA.BRAND],
       default: "User",
       required: true,
     },

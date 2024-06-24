@@ -154,6 +154,7 @@ const loginUser = async (req, res) => {
           const accessToken = await generateToken({
             email: isExistUser?.email,
             username: isExistUser?.username,
+            role: isExistUser?.role,
             verified: isExistUser?.verified,
             _id: isExistUser?._id,
           });

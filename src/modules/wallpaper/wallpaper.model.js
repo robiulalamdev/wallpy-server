@@ -19,6 +19,10 @@ const wallpaperSchema = new Schema(
       type: String,
       required: true,
     },
+    name: {
+      type: String,
+      required: false,
+    },
     slug: {
       type: String,
       unique: true,

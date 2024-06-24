@@ -17,8 +17,13 @@ const {
   sponsorsWallpapers,
   getWallpapersByTag,
 } = require("./wallpaper.controller");
-const { isAuth, isSetUser } = require("../../middlewares/auth");
+const {
+  isAuth,
+  isSetUser,
+  isAuthenticated,
+} = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
+const { ROLE_DATA } = require("../user/user.constants");
 const router = express.Router();
 
 router.post(
@@ -48,5 +53,27 @@ router.patch("/view-increment/:wallpaperId", addNewViewById);
 
 // dashboard
 router.get("/sponsors", sponsorsWallpapers);
+router.post(
+  "/add-media",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  upload.array("wallpaper", 16),
+  handleMulterError,
+  createWallpapers
+);
+router.patch(
+  "/update-media-wallpaper",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  updateWallpapers
+);
+router.delete(
+  "/deletes-media",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  deleteWallpapersByIds
+);
+router.patch(
+  "/media/update-tags/:id",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  updateWallpaperTag
+);
 
 module.exports = { wallpaperRoutes: router };

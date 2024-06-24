@@ -1,0 +1,12 @@
+const roles = ["Admin", "User", "Mod", "Brand"];
+const ROLE_DATA = {
+  ADMIN: "Admin",
+  USER: "User",
+  MOD: "Mod",
+  BRAND: "Brand",
+};
+
+module.exports = {
+  roles,
+  ROLE_DATA,
+};
