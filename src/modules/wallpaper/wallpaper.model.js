@@ -33,6 +33,12 @@ const wallpaperSchema = new Schema(
       enum: WALLPAPER_ENUMS.TYPES,
       required: false,
     },
+    isFeatured: {
+      type: Boolean,
+      enum: [true, false],
+      default: false,
+      required: false,
+    },
     classification: {
       type: String,
       enum: WALLPAPER_ENUMS.CLASSIFICATION,

@@ -16,6 +16,9 @@ const {
   getPopularTags,
   sponsorsWallpapers,
   getWallpapersByTag,
+  getFeaturedItems,
+  addFeaturedItems,
+  getInfoBySlug,
 } = require("./wallpaper.controller");
 const {
   isAuth,
@@ -51,8 +54,13 @@ router.get("/tags/:tag", getWallpapersByTag);
 router.patch("/update-tags/:id", isAuth, updateWallpaperTag);
 router.patch("/view-increment/:wallpaperId", addNewViewById);
 
-// dashboard
+//* dashboard
 router.get("/sponsors", sponsorsWallpapers);
+router.get(
+  "/featured/items",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  getFeaturedItems
+);
 router.post(
   "/add-media",
   isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
@@ -74,6 +82,16 @@ router.patch(
   "/media/update-tags/:id",
   isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
   updateWallpaperTag
+);
+router.post(
+  "/add-featured",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  addFeaturedItems
+);
+router.post(
+  "/media-info/:slug",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  getInfoBySlug
 );
 
 module.exports = { wallpaperRoutes: router };

@@ -513,17 +513,112 @@ const getPopularWallpapers = async (req, res) => {
 
 const getFeaturedWallpapers = async (req, res) => {
   try {
-    const result = await Wallpaper.find({
-      status: WALLPAPER_ENUMS.STATUS[1],
-    })
-      .sort({ _id: -1 })
-      .limit(parseInt(req.query?.limit) || 20);
+    const result = await Wallpaper.aggregate([
+      { $match: { status: WALLPAPER_ENUMS.STATUS[1], isFeatured: true } },
+      { $sample: { size: 3 } },
+    ]);
+
     res.status(200).json({
       status: 200,
       success: true,
       message: "Wallpaper Retrieve Successfully",
       data: result,
     });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
+const getFeaturedItems = async (req, res) => {
+  try {
+    const result = await Wallpaper.find({
+      status: WALLPAPER_ENUMS.STATUS[1],
+      isFeatured: true,
+    })
+      .sort({ _id: -1 })
+      .limit(6);
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Wallpaper Retrieve Successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
+const addFeaturedItems = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoById(req.user._id);
+    if (isExistUser) {
+      await Wallpaper.updateMany(
+        { isFeatured: true },
+        {
+          $set: { isFeatured: false },
+        },
+        { new: false }
+      );
+      const result = await Wallpaper.updateMany(
+        { _id: { $in: req.body.ids } },
+        {
+          $set: { isFeatured: true },
+        },
+        { new: false }
+      );
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Wallpaper Operation Successfully",
+        data: result,
+      });
+    } else {
+      res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User Not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
+const getInfoBySlug = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoById(req.user._id);
+    if (isExistUser) {
+      const result = await Wallpaper.findOne({ slug: req.params.slug });
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Wallpaper Operation Successfully",
+        data: result,
+      });
+    } else {
+      res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User Not Found!",
+      });
+    }
   } catch (error) {
     res.status(500).json({
       status: 500,
@@ -1076,4 +1171,7 @@ module.exports = {
 
   // dashboard
   sponsorsWallpapers,
+  getFeaturedItems,
+  addFeaturedItems,
+  getInfoBySlug,
 };

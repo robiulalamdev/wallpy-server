@@ -11,6 +11,7 @@ const { chatRoutes } = require("../modules/conversations/chat/chat.route");
 const {
   messageRoutes,
 } = require("../modules/conversations/message/message.route");
+const { featuredRoutes } = require("../modules/featured/featured.route");
 const router = express.Router();
 
 const moduleRoutes = [
@@ -53,6 +54,10 @@ const moduleRoutes = [
   {
     path: "/messages",
     route: messageRoutes,
+  },
+  {
+    path: "/featured",
+    route: featuredRoutes,
   },
 ];
 
