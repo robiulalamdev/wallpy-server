@@ -8,6 +8,7 @@ const {
   sendVerifyEmail,
   sendForgotPasswordMail,
 } = require("../../helpers/sendEmailHelper");
+const { getLocation } = require("../../helpers/services");
 const Profile = require("../profile/profile.model");
 const { updateProfileBySetMethod } = require("../profile/profile.service");
 const Wallpaper = require("../wallpaper/wallpaper.model");
@@ -25,6 +26,7 @@ const {
   getUserInfoByUsername,
 } = require("./user.service");
 const bcrcypt = require("bcryptjs");
+const requestIp = require("request-ip");
 
 const createUser = async (req, res) => {
   try {
@@ -718,6 +720,7 @@ const getVerifiedArtists = async (req, res) => {
 //* Admin controller
 const allUsersInfo = async (req, res) => {
   try {
+    const location = await getLocation(req.clientIp);
     const page = parseInt(req.query?.page) || 1;
     const limit = parseInt(req.query?.limit) || 12;
     const search = req.query?.search || "";

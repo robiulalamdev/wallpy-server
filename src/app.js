@@ -5,6 +5,7 @@ const { routers } = require("./routes");
 const app = express();
 const path = require("path");
 const { getResizeImage } = require("./modules/helper/helper.controller");
+const requestIp = require("request-ip");
 
 // middleware
 // app.use(
@@ -13,6 +14,7 @@ const { getResizeImage } = require("./modules/helper/helper.controller");
 //     credentials: true,
 //   })
 // );
+app.use(requestIp.mw());
 app.use(cors());
 app.use(express.json({ limit: "500mb" }));
 app.use(
