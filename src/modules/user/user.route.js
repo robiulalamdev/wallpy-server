@@ -18,8 +18,9 @@ const {
   addUser,
   removeUsersByIds,
 } = require("./user.controller");
-const { isAuth } = require("../../middlewares/auth");
+const { isAuth, isAuthenticated } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
+const { ROLE_DATA } = require("./user.constants");
 const router = express.Router();
 
 router.post("/signup", createUser);
@@ -53,7 +54,11 @@ router.get("/profile-activity/:id", getProfileActivity);
 router.get("/verified-artists", getVerifiedArtists);
 
 //* admin Routes
-router.get("/all-users", allUsersInfo);
+router.get(
+  "/all-users",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  allUsersInfo
+);
 router.post("/add-user", addUser);
 router.delete("/remove-users", removeUsersByIds);
 

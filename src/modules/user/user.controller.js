@@ -26,7 +26,6 @@ const {
   getUserInfoByUsername,
 } = require("./user.service");
 const bcrcypt = require("bcryptjs");
-const requestIp = require("request-ip");
 
 const createUser = async (req, res) => {
   try {
@@ -64,7 +63,7 @@ const createUser = async (req, res) => {
           message: "Username already in use",
         });
       } else {
-        const createResult = await createNewUser(req.body);
+        const createResult = await createNewUser(req.body, req.clientIp);
         const token = await generateVerifyToken({
           email: createResult?.email,
           username: createResult?.username,
@@ -720,7 +719,6 @@ const getVerifiedArtists = async (req, res) => {
 //* Admin controller
 const allUsersInfo = async (req, res) => {
   try {
-    const location = await getLocation(req.clientIp);
     const page = parseInt(req.query?.page) || 1;
     const limit = parseInt(req.query?.limit) || 12;
     const search = req.query?.search || "";

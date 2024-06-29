@@ -1,5 +1,5 @@
 const { Schema, model } = require("mongoose");
-const { ROLE_DATA } = require("./user.constants");
+const { ROLE_DATA, USER_STATUS } = require("./user.constants");
 
 const userSchema = new Schema(
   {
@@ -26,6 +26,12 @@ const userSchema = new Schema(
       type: String,
       enum: [ROLE_DATA.USER, ROLE_DATA.ADMIN, ROLE_DATA.MOD, ROLE_DATA.BRAND],
       default: "User",
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: [USER_STATUS.ACTIVE, USER_STATUS.SUSPENDED, USER_STATUS.BANNED],
+      default: USER_STATUS.ACTIVE,
       required: true,
     },
     verified: {

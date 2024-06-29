@@ -85,6 +85,22 @@ const userProfileSchema = new Schema(
       type: String,
       required: false,
     },
+    country: {
+      type: String,
+      required: false,
+    },
+    countryCode: {
+      type: String,
+      required: false,
+    },
+    flag: {
+      type: String,
+      required: false,
+    },
+    zip: {
+      type: Number,
+      required: false,
+    },
     socials: {
       type: socialSchema,
       default: {

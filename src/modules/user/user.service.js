@@ -1,3 +1,4 @@
+const { getLocation } = require("../../helpers/services");
 const Profile = require("../profile/profile.model");
 const Settings = require("../settings/settings.model");
 const { WALLPAPER_ENUMS } = require("../wallpaper/wallpaper.constant");
@@ -5,7 +6,7 @@ const Wallpaper = require("../wallpaper/wallpaper.model");
 const User = require("./user.model");
 const bcrcypt = require("bcryptjs");
 
-const createNewUser = async (data) => {
+const createNewUser = async (data, ip) => {
   const newUser = new User({
     name: data.email.split("@")[0],
     password: bcrcypt.hashSync(data.password),
@@ -13,9 +14,16 @@ const createNewUser = async (data) => {
     username: data?.username,
     verified: false,
   });
+  const location = await getLocation(ip);
   const result = await newUser.save();
   if (result) {
-    const newProfile = new Profile({ user: result?._id.toString() });
+    const newProfile = new Profile({
+      user: result?._id.toString(),
+      country: location?.country,
+      countryCode: location?.countryCode,
+      zip: location?.zip,
+      flag: location?.flag,
+    });
     const newSettings = new Settings({ user: result?._id.toString() });
     const settingsResult = await newSettings.save();
     const profileResult = await newProfile.save();
