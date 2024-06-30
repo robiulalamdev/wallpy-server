@@ -2,6 +2,7 @@ const socketIo = require("socket.io");
 require("dotenv").config();
 const VARIABLES = require("..");
 const { updateLastActive } = require("../../modules/user/user.service");
+const { ROLE_DATA } = require("../../modules/user/user.constants");
 
 let usersById = new Map();
 let usersBySocketId = new Map();
@@ -11,10 +12,18 @@ const addUser = (userInfo, socketId) => {
     const user = {
       userId: userInfo.id,
       socketId: socketId,
+      role: userInfo?.role,
     };
     usersById.set(userInfo.id, user);
     usersBySocketId.set(socketId, user);
   }
+};
+
+const addPublicUser = (socketId) => {
+  const user = {
+    socketId: socketId,
+  };
+  usersBySocketId.set(socketId, user);
 };
 
 const getSocketUser = async (userId) => {
@@ -50,16 +59,45 @@ const initializeSocket = (Server) => {
 
   io.on("connection", (socket) => {
     //take userId and socketId from user
+
+    socket.on("publicUser", () => {
+      addPublicUser(socket.id);
+      io.emit("getUsers", {
+        visitors: Array.from(usersBySocketId.values()),
+        total: usersBySocketId.size,
+        users: Array.from(usersById.values()),
+      });
+    });
+
     socket.on("addUser", (user) => {
       addUser(user, socket.id);
-      console.log("🟢 Connected total: ", usersById.size, "  ", "user: ", user);
-      io.emit("getUsers", Array.from(usersById.values()));
+      console.log(
+        "🟢 Connected total: ",
+        usersBySocketId.size,
+        "  ",
+        "Role: ",
+        user?.role
+      );
+      io.emit("getUsers", {
+        visitors: Array.from(usersBySocketId.values()),
+        total: usersBySocketId.size,
+        users: Array.from(usersById.values()),
+      });
+    });
+
+    socket.on("requestExistUser", async (userId) => {
+      console.log("dfsd", await getSocketUser(userId));
+      io.emit("getCurrentUser", await getSocketUser(userId));
     });
 
     //when disconnect
     socket.on("disconnect", async () => {
       const user = await removeUser(socket.id);
-      io.emit("getUsers", Array.from(usersById.values()));
+      io.emit("getUsers", {
+        visitors: Array.from(usersBySocketId.values()),
+        total: usersBySocketId.size,
+        users: Array.from(usersById.values()),
+      });
 
       if (user?.userId) {
         const timestamp = Date.now();

@@ -34,4 +34,4 @@ app.use("/api/v1/uploads", express.static(path.join(__dirname, "../")));
 // resize image when loading image
 app.get("/api/v1/assets", getResizeImage);
 
-module.exports = app;
+module.exports = { app, Server };

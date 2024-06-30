@@ -1,8 +1,8 @@
 require("dotenv").config();
 
 const mongoose = require("mongoose");
-const app = require("./app");
 const VARIABLES = require("./config");
+const { app, Server } = require("./app");
 const PORT = VARIABLES.PORT || 8000;
 
 const connectDB = async () => {
@@ -23,6 +23,6 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-app.listen(PORT, () => {
+Server.listen(PORT, () => {
   console.log(`Server is Running PORT: ${PORT}`);
 });
