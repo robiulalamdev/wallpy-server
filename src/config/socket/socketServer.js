@@ -86,7 +86,6 @@ const initializeSocket = (Server) => {
     });
 
     socket.on("requestExistUser", async (userId) => {
-      console.log("dfsd", await getSocketUser(userId));
       io.emit("getCurrentUser", await getSocketUser(userId));
     });
 
