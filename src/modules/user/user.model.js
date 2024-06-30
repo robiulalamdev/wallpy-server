@@ -62,6 +62,11 @@ const userSchema = new Schema(
       type: String,
       required: false,
     },
+    lastActive: {
+      type: Date,
+      default: Date.now(),
+      required: false,
+    },
   },
   {
     timestamps: true,

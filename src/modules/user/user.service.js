@@ -109,6 +109,17 @@ const updateUserWithSetMethod = async (data, id) => {
   return result;
 };
 
+const updateLastActive = async (data, id) => {
+  const result = await User.findByIdAndUpdate(
+    { _id: id },
+    {
+      $set: data,
+    },
+    { new: false }
+  );
+  return result;
+};
+
 module.exports = {
   createNewUser,
   getUser,
@@ -122,4 +133,5 @@ module.exports = {
   getUserInfoByUsername,
   getUserById,
   getUserAndProfileById,
+  updateLastActive,
 };
