@@ -21,6 +21,7 @@ const {
 const { isAuth, isAuthenticated } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
 const { ROLE_DATA } = require("./user.constants");
+const { testAction } = require("./user.service");
 const router = express.Router();
 
 router.post("/signup", createUser);
@@ -61,5 +62,7 @@ router.get(
 );
 router.post("/add-user", addUser);
 router.delete("/remove-users", removeUsersByIds);
+
+router.get("/test/action", testAction);
 
 module.exports = { userRoutes: router };

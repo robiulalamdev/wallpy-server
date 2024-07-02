@@ -120,6 +120,17 @@ const updateLastActive = async (data, id) => {
   return result;
 };
 
+const testAction = async (req, res) => {
+  const result = await Wallpaper.updateMany(
+    {},
+    {
+      $set: { isFeatured: false },
+    },
+    { new: false }
+  );
+  res.send(result);
+};
+
 module.exports = {
   createNewUser,
   getUser,
@@ -134,4 +145,5 @@ module.exports = {
   getUserById,
   getUserAndProfileById,
   updateLastActive,
+  testAction,
 };
