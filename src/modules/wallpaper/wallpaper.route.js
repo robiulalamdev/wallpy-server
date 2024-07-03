@@ -19,6 +19,10 @@ const {
   getFeaturedItems,
   addFeaturedItems,
   getInfoBySlug,
+  getTopThreeFavoritedWallpapers,
+  getMostDownloadedWallpapers,
+  addNewDownloadCountByWallId,
+  getTopCategories,
 } = require("./wallpaper.controller");
 const {
   isAuth,
@@ -53,6 +57,7 @@ router.get("/tags/:tag", getWallpapersByTag);
 // update
 router.patch("/update-tags/:id", isAuth, updateWallpaperTag);
 router.patch("/view-increment/:wallpaperId", addNewViewById);
+router.patch("/download-inc/:wallpaperId", addNewDownloadCountByWallId);
 
 //* dashboard
 router.get("/sponsors", sponsorsWallpapers);
@@ -92,6 +97,21 @@ router.post(
   "/media-info/:slug",
   isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
   getInfoBySlug
+);
+router.get(
+  "/top-three/favorite",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  getTopThreeFavoritedWallpapers
+);
+router.get(
+  "/most-downloaded",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  getMostDownloadedWallpapers
+);
+router.get(
+  "/top-categories",
+  // isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  getTopCategories
 );
 
 module.exports = { wallpaperRoutes: router };

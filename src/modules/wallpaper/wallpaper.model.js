@@ -70,6 +70,10 @@ const wallpaperSchema = new Schema(
       default: 0,
       required: true,
     },
+    downloads: {
+      type: [Date],
+      required: false,
+    },
     tags: {
       type: [String],
       index: true,

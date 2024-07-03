@@ -677,6 +677,28 @@ const addNewViewById = async (req, res) => {
   }
 };
 
+const addNewDownloadCountByWallId = async (req, res) => {
+  try {
+    const result = await Wallpaper.updateOne(
+      { _id: req.params.wallpaperId },
+      { $push: { downloads: Date.now() } }
+    );
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Wallpaper View Successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 // get search wallpapers with filter and pagination
 
 const getSearchAndFilterWallpapers = async (req, res) => {
@@ -1152,6 +1174,128 @@ const getWallpapersByTag = async (req, res) => {
   }
 };
 
+const getTopThreeFavoritedWallpapers = async (req, res) => {
+  try {
+    const topFavorites = await Favorite.aggregate([
+      {
+        $group: {
+          _id: "$wallpaper",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+      {
+        $limit: 3,
+      },
+    ]);
+
+    // Extract the wallpaper IDs
+    const wallpaperIds = topFavorites.map((fav) => fav._id);
+
+    // Fetch the wallpaper details
+    const wallpapers = await Wallpaper.find({ _id: { $in: wallpaperIds } });
+
+    // Map the count to the wallpapers and sort by count in descending order
+    const result = wallpapers
+      .map((wallpaper) => {
+        const count = topFavorites.find((fav) =>
+          fav._id.equals(wallpaper._id)
+        ).count;
+        return { ...wallpaper.toObject(), count };
+      })
+      .sort((a, b) => b.count - a.count); // Sort by count in descending order
+
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Wallpapers Retrieved Successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
+const getMostDownloadedWallpapers = async (req, res) => {
+  try {
+    const result = await Wallpaper.aggregate([
+      { $match: { status: WALLPAPER_ENUMS.STATUS[1] } },
+      {
+        $project: {
+          wallpaper: 1,
+          slug: 1,
+          downloadsCount: { $size: { $ifNull: ["$downloads", []] } },
+        },
+      },
+      { $sort: { downloadsCount: -1 } },
+      { $limit: 9 },
+    ]);
+
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Wallpapers Retrieved Successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
+const getTopCategories = async (req, res) => {
+  try {
+    // Aggregate the tags and their corresponding total views
+    const result = await Wallpaper.aggregate([
+      { $match: { status: WALLPAPER_ENUMS.STATUS[1] } },
+      { $unwind: "$tags" },
+      {
+        $group: {
+          _id: "$tags",
+          totalViews: { $sum: "$view" },
+          downTotal: { $sum: { $size: { $ifNull: ["$downloads", []] } } },
+        },
+      },
+      { $sort: { totalViews: -1, downTotal: -1 } },
+      { $limit: 12 },
+      {
+        $project: {
+          tag: "$_id",
+          _id: 0,
+        },
+      },
+    ]);
+
+    // Extract tags from the result
+    const tags = result.map((item) => item.tag);
+
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Tags retrieved successfully",
+      data: tags,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Tags retrieve error",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createWallpapers,
   getWallpapers,
@@ -1165,6 +1309,7 @@ module.exports = {
   getOfficialWallpapers,
   updateWallpaperTag,
   addNewViewById,
+  addNewDownloadCountByWallId,
   getSearchAndFilterWallpapers,
   getPopularTags,
   getWallpapersByTag,
@@ -1174,4 +1319,7 @@ module.exports = {
   getFeaturedItems,
   addFeaturedItems,
   getInfoBySlug,
+  getTopThreeFavoritedWallpapers,
+  getMostDownloadedWallpapers,
+  getTopCategories,
 };
