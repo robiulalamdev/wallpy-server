@@ -103,6 +103,10 @@ const getCollectionsList = async (req, res) => {
 
 const getMyProfileCollections = async (req, res) => {
   try {
+    const page = parseInt(req.query?.page) || 1;
+    const limit = parseInt(req.query?.limit) || 18;
+    const skip = (page - 1) * limit;
+
     const isExistUser = await getUserById(req.params.userId);
     if (isExistUser) {
       const result = await Collection.find({
@@ -111,13 +115,26 @@ const getMyProfileCollections = async (req, res) => {
         $expr: { $gt: [{ $size: "$wallpapers" }, 0] },
       })
         .populate({ path: "wallpapers", options: { limit: 4 } })
-        .sort({ _id: -1 });
+        .sort({ _id: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      const total = await Collection.countDocuments({
+        user: isExistUser?._id?.toString(),
+        status: true,
+        $expr: { $gt: [{ $size: "$wallpapers" }, 0] },
+      });
 
       res.status(200).json({
         status: 200,
         success: true,
         message: "Collections Retrieve Success",
         data: result,
+        meta: {
+          total: total,
+          page: page,
+          limit: limit,
+        },
       });
     } else {
       res.status(404).json({

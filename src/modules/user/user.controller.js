@@ -651,11 +651,9 @@ const getProfileActivity = async (req, res) => {
       status: "Published",
     });
 
-    const lastActive = await Wallpaper.findOne({ user: req.params.id })
-      .sort({ _id: -1 })
-      .limit(1)
-      .populate({ path: "user", select: "createdAt" })
-      .select("createdAt user");
+    const user = await User.findOne({ _id: req.params.id }).select(
+      "lastActive"
+    );
 
     // Return the combined data
     return res.status(200).json({
@@ -664,8 +662,8 @@ const getProfileActivity = async (req, res) => {
       message: "Profile Activity retrieved successfully",
       data: {
         uploadTotal: result,
-        lastActive: lastActive?.createdAt,
-        memberSince: lastActive?.user?.createdAt,
+        lastActive: user?.lastActive,
+        memberSince: user?.createdAt,
       },
     });
   } catch (error) {

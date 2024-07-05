@@ -88,6 +88,10 @@ const getWallpapers = async (req, res) => {
 
 const getWallpapersByUserId = async (req, res) => {
   try {
+    const page = parseInt(req.query?.page) || 1;
+    const limit = parseInt(req.query?.limit) || 18;
+    const skip = (page - 1) * limit;
+
     const isExistUser = await getUserInfoById(req.params.userId);
     if (isExistUser) {
       const query = {
@@ -112,12 +116,21 @@ const getWallpapersByUserId = async (req, res) => {
       } else {
         query["classification"] = { $ne: "NSFW" };
       }
-      const published = await Wallpaper.find(query).sort({ _id: -1 });
+      const published = await Wallpaper.find(query)
+        .sort({ _id: -1 })
+        .skip(skip)
+        .limit(limit);
+      const total = await Wallpaper.countDocuments(query);
       res.status(200).json({
         status: 200,
         success: true,
         message: "Wallpapers Retrieve Successfully",
         data: published,
+        meta: {
+          total: total,
+          page: page,
+          limit: limit,
+        },
       });
     } else {
       res.status(404).json({
