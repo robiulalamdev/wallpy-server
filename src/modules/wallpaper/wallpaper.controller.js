@@ -515,7 +515,7 @@ const getFeaturedWallpapers = async (req, res) => {
   try {
     const result = await Wallpaper.aggregate([
       { $match: { status: WALLPAPER_ENUMS.STATUS[1], isFeatured: true } },
-      { $sample: { size: 3 } },
+      { $sample: { size: 6 } },
     ]);
 
     res.status(200).json({
