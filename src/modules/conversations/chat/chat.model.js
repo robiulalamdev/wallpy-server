@@ -9,6 +9,19 @@ const chatSchema = new Schema(
         required: true,
       },
     ],
+    hide: {
+      type: Object,
+      sender: {
+        type: Boolean,
+        enum: [true, false],
+      },
+      receiver: {
+        type: Boolean,
+        enum: [true, false],
+      },
+      default: { sender: false, receiver: false },
+      required: false,
+    },
   },
   { timeseries: true, timestamps: true }
 );

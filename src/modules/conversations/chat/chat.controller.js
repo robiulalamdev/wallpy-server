@@ -1,10 +1,10 @@
-const User = require("../../user/user.model");
 const { getUserAndProfileById } = require("../../user/user.service");
 const Message = require("../message/message.model");
 const Chat = require("./chat.model");
 
 const createChat = async (req, res) => {
   try {
+    const userId = req.user?._id;
     const isExist = await Chat.findOne({
       members: {
         $all: req.body.members,
@@ -18,6 +18,29 @@ const createChat = async (req, res) => {
         message: req.body.message,
       });
       const result = await newMessage.save();
+
+      const isChatRole =
+        isExist?.members[0].toString() === userId ? "Receiver" : "Sender";
+
+      let updateData = {};
+      if (isChatRole === "Receiver") {
+        updateData["receiver"] = false;
+        updateData["sender"] = isExist?.hide?.sender;
+      }
+      if (isChatRole === "Sender") {
+        updateData["sender"] = false;
+        updateData["receiver"] = isExist?.hide?.receiver;
+      }
+
+      await Chat.updateOne(
+        { _id: isExist?._id?.toString() },
+        {
+          $set: {
+            hide: updateData,
+          },
+        }
+      );
+
       res.status(200).json({
         success: true,
         message: "Message Send Successfully",
@@ -80,8 +103,14 @@ const getAllChats = async (req, res) => {
         lastMessage: lastMessage,
         total_unseen: total,
       };
-
-      formattedChats.push(formattedChat);
+      const isChatRole =
+        chat?.members[0].toString() === userId ? "Receiver" : "Sender";
+      if (isChatRole === "Receiver" && chat?.hide?.receiver === false) {
+        formattedChats.push(formattedChat);
+      }
+      if (isChatRole === "Sender" && chat?.hide?.sender === false) {
+        formattedChats.push(formattedChat);
+      }
     }
 
     formattedChats.sort((a, b) => {
@@ -105,8 +134,29 @@ const getAllChats = async (req, res) => {
 
 const removeChatById = async (req, res) => {
   try {
-    await Chat.deleteOne({ _id: req.params.id });
-    await Message.deleteMany({ chatId: req.params.id });
+    const userId = req.user?._id;
+    const chat = await Chat.findById({ _id: req.params.id });
+    const isChatRole =
+      chat?.members[0].toString() === userId ? "Receiver" : "Sender";
+
+    let updateData = {};
+    if (isChatRole === "Receiver") {
+      updateData["receiver"] = true;
+      updateData["sender"] = chat?.hide?.sender;
+    }
+    if (isChatRole === "Sender") {
+      updateData["sender"] = true;
+      updateData["receiver"] = chat?.hide?.receiver;
+    }
+
+    await Chat.updateOne(
+      { _id: req.params.id },
+      {
+        $set: {
+          hide: updateData,
+        },
+      }
+    );
 
     res.status(200).json({
       success: true,

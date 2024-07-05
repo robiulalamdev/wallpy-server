@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post("/create", isAuth, createChat);
 router.get("/me", isAuth, getAllChats);
-router.get("/members/receiverId/:senderId");
-router.delete("/:id", removeChatById);
+// router.get("/members/receiverId/:senderId");
+router.delete("/:id", isAuth, removeChatById);
 
 module.exports = { chatRoutes: router };

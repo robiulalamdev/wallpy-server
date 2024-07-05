@@ -25,7 +25,8 @@ const createMessage = async (req, res) => {
 
 const getAllMessagesByChat = async (req, res) => {
   try {
-    const result = await Message.find({ chatId: req.params.chatId });
+    let query = { chatId: req.params.chatId };
+    const result = await Message.find(query);
     res.status(200).json({
       success: true,
       message: "Messages Retrieve Successfully",
