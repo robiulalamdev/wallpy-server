@@ -13,6 +13,7 @@ const {
 } = require("../modules/conversations/message/message.route");
 const { featuredRoutes } = require("../modules/featured/featured.route");
 const { analyticsRoutes } = require("../modules/analytics/analytics.route");
+const { damMessageRoutes } = require("../modules/damMessage/damMessage.route");
 const router = express.Router();
 
 const moduleRoutes = [
@@ -63,6 +64,10 @@ const moduleRoutes = [
   {
     path: "/analytics",
     route: analyticsRoutes,
+  },
+  {
+    path: "/dam-messages",
+    route: damMessageRoutes,
   },
 ];
 

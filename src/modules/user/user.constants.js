@@ -1,9 +1,10 @@
-const roles = ["Admin", "User", "Mod", "Brand", ""];
+const roles = ["Admin", "User", "Mod", "Brand", "Artist"];
 const ROLE_DATA = {
   ADMIN: "Admin",
   USER: "User",
   MOD: "Mod",
   BRAND: "Brand",
+  ARTIST: "Artist",
 };
 
 const USER_STATUS = {
