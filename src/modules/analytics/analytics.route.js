@@ -4,10 +4,14 @@ const {
   isSetUser,
   isAuthenticated,
 } = require("../../middlewares/auth");
-const { getDashboardStats } = require("./analytics.controller");
+const {
+  getDashboardStats,
+  handleTrackingVisitor,
+} = require("./analytics.controller");
 const { ROLE_DATA } = require("../user/user.constants");
 const router = express.Router();
 
+router.post("/tracking", handleTrackingVisitor);
 //* dashboard
 router.get(
   "/",

@@ -3,8 +3,7 @@ const { Schema, model } = require("mongoose");
 const analyticsSchema = new Schema(
   {
     visitors: {
-      type: Number,
-      default: 0,
+      type: [String], //* ip address stored in array
       required: false,
     },
   },
