@@ -892,6 +892,54 @@ const changePasswordFromDashboard = async (req, res) => {
   }
 };
 
+const updateLoginInformation = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoById(req.params.id);
+    if (isExistUser) {
+      const isExistUsername = await User.findOne({
+        $and: [
+          { username: { $regex: new RegExp(`^${req.body.username}$`, "i") } },
+          { _id: { $ne: req.params.id } },
+        ],
+      });
+      if (isExistUsername) {
+        return res.status(200).json({
+          status: 200,
+          success: false,
+          type: "username",
+          message: "Username already in use",
+        });
+      } else {
+        const updateData = {};
+        if (req.body.username) {
+          updateData["username"] = req.body.username;
+        }
+        if (req.body.password) {
+          updateData["password"] = bcrcypt.hashSync(req.body.password);
+        }
+        const result = await User.updateOne(
+          { _id: req.params.id },
+          {
+            $set: updateData,
+          }
+        );
+        res.status(200).json({
+          status: 200,
+          success: true,
+          message: "User login info changed successfully",
+        });
+      }
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User login info changed unSuccessfully",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -912,4 +960,5 @@ module.exports = {
   removeUsersByIds,
   modifyUserInfo,
   changePasswordFromDashboard,
+  updateLoginInformation,
 };
