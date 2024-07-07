@@ -17,6 +17,8 @@ const {
   allUsersInfo,
   addUser,
   removeUsersByIds,
+  modifyUserInfo,
+  changePasswordFromDashboard,
 } = require("./user.controller");
 const { isAuth, isAuthenticated } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -62,6 +64,16 @@ router.get(
 );
 router.post("/add-user", addUser);
 router.delete("/remove-users", removeUsersByIds);
+router.patch(
+  "/modify-info",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  modifyUserInfo
+);
+router.patch(
+  "/modify-password/:id",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  changePasswordFromDashboard
+);
 
 router.get("/test/action", testAction);
 

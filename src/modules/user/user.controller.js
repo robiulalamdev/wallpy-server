@@ -830,6 +830,68 @@ const removeUsersByIds = async (req, res) => {
   }
 };
 
+const modifyUserInfo = async (req, res) => {
+  try {
+    const result = await User.updateMany(
+      {
+        _id: { $in: req.body.ids },
+      },
+      { $set: req.body?.data }
+    );
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Users deleted successfully",
+    });
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Delete Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
+const changePasswordFromDashboard = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoById(req.params.id);
+    if (isExistUser) {
+      const result = await User.findByIdAndUpdate(
+        {
+          _id: isExistUser?._id.toString(),
+        },
+        {
+          $set: {
+            password: bcrcypt.hashSync(req.body.password),
+            reset_password: false,
+          },
+        },
+        { new: false }
+      );
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Password Changed Success",
+      });
+    } else {
+      return res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Login Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -848,4 +910,6 @@ module.exports = {
   allUsersInfo,
   addUser,
   removeUsersByIds,
+  modifyUserInfo,
+  changePasswordFromDashboard,
 };

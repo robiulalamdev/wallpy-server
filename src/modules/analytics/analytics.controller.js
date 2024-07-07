@@ -64,17 +64,20 @@ const getDashboardStats = async (req, res) => {
           ); // Today 00:00
           break;
         case "this week":
-          const firstDayOfWeek = currentDate.getDate() - currentDate.getDay();
-          startDate = new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth(),
-            firstDayOfWeek
-          ); // First day of this week 00:00
-          endDate = new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth(),
-            firstDayOfWeek + 7
-          ); // First day of next week 00:00
+          const dayOfWeek = currentDate.getDay(); // 0 (Sunday) to 6 (Saturday)
+
+          // Calculate the start of the current week (previous Sunday)
+          const firstDayOfWeek = new Date(currentDate);
+          firstDayOfWeek.setDate(currentDate.getDate() - dayOfWeek);
+          firstDayOfWeek.setHours(0, 0, 0, 0); // Set to start of the day (midnight)
+
+          // Calculate the end of the current week (current Sunday)
+          const lastDayOfWeek = new Date(firstDayOfWeek);
+          lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 7); // Add 7 days for a full week
+          lastDayOfWeek.setHours(0, 0, 0, 0); // Set to start of the day (midnight)
+
+          startDate = firstDayOfWeek;
+          endDate = lastDayOfWeek;
           break;
         case "this month":
           startDate = new Date(
@@ -92,15 +95,14 @@ const getDashboardStats = async (req, res) => {
           startDate = new Date(currentDate.getFullYear(), 0, 1); // First day of this year 00:00
           endDate = new Date(currentDate.getFullYear() + 1, 0, 1); // First day of next year 00:00
           break;
-
         default:
-          startDate = new Date(0); // Default to all time if unknown value
-          endDate = currentDate; // Current date/time
+          startDate = null; // Default to all time if unknown value
+          endDate = null; // Current date/time
       }
     } else {
       // Default to all time if no date filter is provided
-      startDate = new Date(0);
-      endDate = currentDate;
+      startDate = null;
+      endDate = null;
     }
 
     // Perform the aggregation queries
@@ -125,9 +127,19 @@ const getDashboardStats = async (req, res) => {
                 input: "$downloads",
                 as: "download",
                 cond: {
-                  $and: [
-                    { $gte: ["$$download", startDate] },
-                    { $lt: ["$$download", endDate] },
+                  $or: [
+                    {
+                      $and: [
+                        { $ifNull: [startDate, true] },
+                        { $ifNull: [endDate, true] },
+                      ],
+                    },
+                    {
+                      $and: [
+                        { $gte: ["$$download", startDate] },
+                        { $lt: ["$$download", endDate] },
+                      ],
+                    },
                   ],
                 },
               },
@@ -144,17 +156,23 @@ const getDashboardStats = async (req, res) => {
 
       Wallpaper.countDocuments({
         status: WALLPAPER_ENUMS.STATUS[1],
-        createdAt: { $gte: startDate, $lte: endDate },
+        ...(startDate && endDate
+          ? { createdAt: { $gte: startDate, $lte: endDate } }
+          : {}),
       }),
 
       User.countDocuments({
-        createdAt: { $gte: startDate, $lte: endDate },
+        ...(startDate && endDate
+          ? { createdAt: { $gte: startDate, $lte: endDate } }
+          : {}),
       }),
 
       Analytics.aggregate([
         {
           $match: {
-            createdAt: { $gte: startDate, $lt: endDate },
+            ...(startDate && endDate
+              ? { createdAt: { $gte: startDate, $lt: endDate } }
+              : {}),
           },
         },
         {
