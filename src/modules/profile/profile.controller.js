@@ -139,6 +139,42 @@ const approvedProfile = async (req, res) => {
   }
 };
 
+// const updateProfileSetting = async (req, res) => {
+//   try {
+//     const isExistUser = await getUserInfoById(req.params.id);
+//     if (isExistUser) {
+//       const profileData = {};
+//       if (req.file) {
+//         profileData["banner"] = req.file?.path;
+//       }
+//       await updateProfileBySetMethod(profileData, isExistUser?._id.toString());
+//       if (req.file) {
+//         await removeFile(isExistUser?.profile?.official_banner);
+//       }
+//       return res.status(200).json({
+//         status: 200,
+//         success: true,
+//         message: "Profile Update Successfully",
+//       });
+//     } else {
+//       return res.status(404).json({
+//         status: 404,
+//         success: false,
+//         type: "email",
+//         message: "User not Found!",
+//         data: null,
+//       });
+//     }
+//   } catch (error) {
+//     res.status(201).json({
+//       status: 201,
+//       success: false,
+//       message: "Profile Update Failed!",
+//       error_message: error.message,
+//     });
+//   }
+// };
+
 module.exports = {
   verificationRequest,
   updateBrandTabInfo,
