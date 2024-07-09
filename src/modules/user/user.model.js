@@ -34,6 +34,18 @@ const userSchema = new Schema(
       default: USER_STATUS.ACTIVE,
       required: true,
     },
+    reason: {
+      type: Object,
+      message: {
+        type: String,
+        required: false,
+      },
+      time: {
+        type: String,
+        required: false,
+      },
+      required: false,
+    },
     verified: {
       type: Boolean,
       enum: [true, false],

@@ -11,7 +11,9 @@ const {
 const { getLocation } = require("../../helpers/services");
 const Profile = require("../profile/profile.model");
 const { updateProfileBySetMethod } = require("../profile/profile.service");
+const Settings = require("../settings/settings.model");
 const Wallpaper = require("../wallpaper/wallpaper.model");
+const { USER_STATUS } = require("./user.constants");
 const User = require("./user.model");
 const {
   getUsername,
@@ -740,7 +742,12 @@ const allUsersInfo = async (req, res) => {
         const populateUsers = await Promise.all(
           users.map(async (user) => {
             const profileResult = await Profile.findOne({ user: user._id });
-            return { ...user.toObject(), profile: profileResult };
+            const settingsResult = await Settings.findOne({ user: user._id });
+            return {
+              ...user.toObject(),
+              profile: profileResult,
+              settings: settingsResult,
+            };
           })
         );
         return populateUsers;
@@ -940,6 +947,60 @@ const updateLoginInformation = async (req, res) => {
   }
 };
 
+const modifyPrivilegesInfo = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoById(req.params.id);
+    if (isExistUser) {
+      const updateData = {};
+      const status = req.body.status || "";
+      if (status) {
+        if (status === USER_STATUS.ACTIVE) {
+          updateData["status"] = USER_STATUS.ACTIVE;
+          updateData["reason"] = {
+            message: "",
+            time: "",
+          };
+        }
+        if (status === USER_STATUS.BANNED) {
+          updateData["status"] = USER_STATUS.BANNED;
+          updateData["reason"] = {
+            message: req.body?.reason?.message,
+            time: "",
+          };
+        }
+        if (status === USER_STATUS.SUSPENDED) {
+          updateData["status"] = USER_STATUS.SUSPENDED;
+          updateData["reason"] = {
+            message: req.body?.reason?.message,
+            time: req.body.reason?.time,
+          };
+        }
+      }
+
+      await User.updateOne(
+        { _id: req.params.id },
+        {
+          $set: updateData,
+        }
+      );
+      const result = await getUserInfoById(isExistUser?._id.toString());
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "User login info changed successfully",
+        data: result,
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User login info changed unSuccessfully",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -961,4 +1022,5 @@ module.exports = {
   modifyUserInfo,
   changePasswordFromDashboard,
   updateLoginInformation,
+  modifyPrivilegesInfo,
 };

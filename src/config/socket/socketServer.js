@@ -81,6 +81,7 @@ const initializeSocket = (Server) => {
       io.emit("getUsers", {
         visitors: Array.from(usersBySocketId.values()),
         total: usersBySocketId.size,
+        totalUsers: usersById.size,
         users: Array.from(usersById.values()),
       });
     });
