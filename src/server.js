@@ -3,7 +3,7 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const VARIABLES = require("./config");
 const { app, Server } = require("./app");
-const PORT = VARIABLES.PORT || 8000;
+const PORT = VARIABLES.PORT || 9000;
 
 const connectDB = async () => {
   try {

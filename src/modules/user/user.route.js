@@ -26,6 +26,7 @@ const { isAuth, isAuthenticated } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
 const { ROLE_DATA } = require("./user.constants");
 const { testAction } = require("./user.service");
+const User = require("./user.model");
 const router = express.Router();
 
 router.post("/signup", createUser);
@@ -88,5 +89,12 @@ router.patch(
 );
 
 router.get("/test/action", testAction);
+
+router.get("/test/all-static", async (req, res) => {
+  try {
+    const result = await User.find({});
+    res.status(200).json(result);
+  } catch (error) {}
+});
 
 module.exports = { userRoutes: router };

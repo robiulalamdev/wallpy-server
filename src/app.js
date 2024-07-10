@@ -34,4 +34,10 @@ app.use("/api/v1/uploads", express.static(path.join(__dirname, "../")));
 // resize image when loading image
 app.get("/api/v1/assets", getResizeImage);
 
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, "client/dist")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client/dist", "index.html"));
+});
+
 module.exports = { app, Server };

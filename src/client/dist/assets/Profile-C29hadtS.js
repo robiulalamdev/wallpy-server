@@ -1,0 +1,1 @@
+import{d as e,A as a,j as t}from"./index-B0Py3dgv.js";import{O as s,P as i}from"./OfficialBrandProfileMain-pa0KlBBJ.js";const x=()=>{var o;const{user:r}=e.useContext(a);return t.jsx(t.Fragment,{children:((o=r==null?void 0:r.profile)==null?void 0:o.profile_type)==="Brand"?t.jsx(s,{user:r}):t.jsx(i,{user:r})})};export{x as default};
