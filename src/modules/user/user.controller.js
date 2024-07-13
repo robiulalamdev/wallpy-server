@@ -12,8 +12,11 @@ const { getLocation } = require("../../helpers/services");
 const Profile = require("../profile/profile.model");
 const { updateProfileBySetMethod } = require("../profile/profile.service");
 const Settings = require("../settings/settings.model");
+const {
+  getVerificationByUserId,
+} = require("../verification/verification.service");
 const Wallpaper = require("../wallpaper/wallpaper.model");
-const { USER_STATUS } = require("./user.constants");
+const { USER_STATUS, ROLE_DATA } = require("./user.constants");
 const User = require("./user.model");
 const {
   getUsername,
@@ -429,11 +432,12 @@ const getUserInfo = async (req, res) => {
   try {
     const isExistUser = await getUserInfoById(req.user?._id);
     if (isExistUser) {
+      const verificationData = await getVerificationByUserId(req.user?._id);
       res.status(200).json({
         status: 200,
         success: true,
         message: "User Retrieve Success",
-        data: isExistUser,
+        data: { ...isExistUser, verification: verificationData },
       });
     } else {
       return res.status(404).json({
@@ -680,31 +684,34 @@ const getProfileActivity = async (req, res) => {
 
 const getVerifiedArtists = async (req, res) => {
   try {
-    const result = await Profile.find({
-      profile_type: "Artist",
-      $or: [
-        { verification_status: "Approved" },
-        // { verification_status: "Pending" },
-      ],
+    const result = await User.find({
+      role: ROLE_DATA.ARTIST,
+      verification_status: true,
     })
-      .select("profile_image verification_status name profile_type -_id")
-      .populate("user", "name username")
       .sort({ _id: -1 })
-      .limit(5);
-
-    const artists = result.map((profile) => {
-      return {
-        ...profile?.user.toObject(),
-        profile: { ...profile.toObject(), user: profile?.user?._id },
-      };
-    });
+      .limit(5)
+      .select("name username role verification_status")
+      .then(async function (items) {
+        const populatedFeatured = await Promise.all(
+          items.map(async (currentItem) => {
+            const profile = await Profile.findOne({
+              user: currentItem?._id,
+            }).select("profile_image");
+            return {
+              ...currentItem.toObject(),
+              profile: profile,
+            };
+          })
+        );
+        return populatedFeatured;
+      });
 
     // Return the combined data
     return res.status(200).json({
       status: 200,
       success: true,
       message: "Verified Artists Retrieved successfully",
-      data: artists,
+      data: result,
     });
   } catch (error) {
     res.status(201).json({
@@ -839,12 +846,17 @@ const removeUsersByIds = async (req, res) => {
 
 const modifyUserInfo = async (req, res) => {
   try {
-    const result = await User.updateMany(
-      {
-        _id: { $in: req.body.ids },
-      },
-      { $set: req.body?.data }
-    );
+    for (let i = 0; i < req.body?.items.length; i++) {
+      const user = req.body?.items[i];
+      await User.updateOne(
+        { _id: user?._id },
+        {
+          $set: user,
+        },
+        { new: false }
+      );
+    }
+
     res.status(200).json({
       status: 200,
       success: true,

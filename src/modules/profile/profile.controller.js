@@ -1,56 +1,65 @@
 const { removeFile } = require("../../config/multer");
 const { updateSettingsBySetMethod } = require("../settings/settings.service");
-const { getUserInfoById } = require("../user/user.service");
+const {
+  getUserInfoById,
+  updateUserWithSetMethod,
+} = require("../user/user.service");
 const Profile = require("./profile.model");
 const { updateProfileBySetMethod } = require("./profile.service");
 
 const verificationRequest = async (req, res) => {
   try {
     const isExistUser = await getUserInfoById(req.user?._id);
-    if (isExistUser) {
-      if (
-        isExistUser?.profile?.verification_status === "Pending" ||
-        isExistUser?.profile?.verification_status === "Approved"
-      ) {
-        res.status(200).json({
-          status: 200,
-          success: false,
-          type: "exist",
-          message: "Already Verification Requested",
-        });
-      } else {
-        const updateData = {
-          name: req.body.name,
-          profile_type: req.body.profile_type,
-          verification_status: "Pending",
-        };
-        if (req.file) {
-          updateData["proof_of_identity"] = req.file?.path;
-        }
-        if (req.body?.other_verified_profiles?.length > 0) {
-          updateData["other_verified_profiles"] =
-            req.body?.other_verified_profiles;
-        }
-        const result = await Profile.updateOne(
-          {
-            user: isExistUser?._id.toString(),
-          },
-          { $set: updateData },
-          { new: false }
-        );
-        res.status(200).json({
-          status: 200,
-          success: true,
-          message: "Verification Request Success",
-        });
-      }
-    } else {
-      return res.status(404).json({
-        status: 404,
-        success: false,
-        message: "User not Found!",
-      });
-    }
+    return res.status(200).json({
+      status: 200,
+      success: false,
+      type: "exist",
+      message: "currently this endpoint not using",
+    });
+    // if (isExistUser) {
+    //   if (
+    //     isExistUser?.profile?.verification_status === "Pending" ||
+    //     isExistUser?.profile?.verification_status === "Approved"
+    //   ) {
+    //     res.status(200).json({
+    //       status: 200,
+    //       success: false,
+    //       type: "exist",
+    //       message: "Already Verification Requested",
+    //     });
+    //   } else {
+    //     const updateData = {
+    //       name: req.body.name,
+    //       profile_type: req.body.profile_type,
+    //       verification_status: "Pending",
+    //     };
+    //     if (req.file) {
+    //       updateData["proof_of_identity"] = req.file?.path;
+    //     }
+    //     if (req.body?.other_verified_profiles?.length > 0) {
+    //       updateData["other_verified_profiles"] =
+    //         req.body?.other_verified_profiles;
+    //     }
+    //     const result = await Profile.updateOne(
+    //       {
+    //         user: isExistUser?._id.toString(),
+    //       },
+    //       { $set: updateData },
+    //       { new: false }
+    //     );
+    //     res.status(200).json({
+    //       status: 200,
+    //       success: true,
+    //       message: "Verification Request Success",
+    //     });
+    //   }
+    // } else {
+    //   return res.status(404).json({
+    //     status: 404,
+    //     success: false,
+    //     message: "User not Found!",
+    //   });
+    // }
   } catch (error) {
     res.status(201).json({
       status: 201,
@@ -65,7 +74,7 @@ const updateBrandTabInfo = async (req, res) => {
   try {
     const isExistUser = await getUserInfoById(req.user?._id);
     if (isExistUser) {
-      if (isExistUser?.profile?.verification_status !== "Approved") {
+      if (isExistUser?.verification_status === false) {
         return res.status(201).json({
           status: 201,
           success: false,
@@ -78,7 +87,10 @@ const updateBrandTabInfo = async (req, res) => {
           profileData["official_banner"] = req.file?.path;
         }
         if (req.body.name) {
-          profileData["name"] = req.body.name;
+          await updateUserWithSetMethod(
+            { name: req.body.name },
+            isExistUser?._id.toString()
+          );
         }
         await updateProfileBySetMethod(
           profileData,

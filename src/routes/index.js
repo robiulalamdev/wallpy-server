@@ -14,6 +14,9 @@ const {
 const { featuredRoutes } = require("../modules/featured/featured.route");
 const { analyticsRoutes } = require("../modules/analytics/analytics.route");
 const { damMessageRoutes } = require("../modules/damMessage/damMessage.route");
+const {
+  verificationRoutes,
+} = require("../modules/verification/verification.route");
 const router = express.Router();
 
 const moduleRoutes = [
@@ -68,6 +71,10 @@ const moduleRoutes = [
   {
     path: "/dam-messages",
     route: damMessageRoutes,
+  },
+  {
+    path: "/verifications",
+    route: verificationRoutes,
   },
 ];
 

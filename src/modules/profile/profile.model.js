@@ -61,23 +61,7 @@ const userProfileSchema = new Schema(
       type: String,
       required: false,
     },
-    profile_type: {
-      type: String,
-      enum: ["None", "Brand", "Artist"],
-      default: "None",
-      required: false,
-    },
-    name: {
-      type: String,
-      required: false,
-    },
-    verification_status: {
-      type: String,
-      enum: ["None", "Pending", "Approved", "Decline"],
-      default: "None",
-      required: true,
-    },
-    other_verified_profiles: {
+    links: {
       type: [String],
       required: false,
     },

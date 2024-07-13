@@ -28,6 +28,13 @@ const userSchema = new Schema(
       default: "User",
       required: true,
     },
+    verification_status: {
+      // this verification status for brand and artist
+      type: Boolean,
+      enum: [true, false],
+      default: false,
+      required: false,
+    },
     status: {
       type: String,
       enum: [USER_STATUS.ACTIVE, USER_STATUS.SUSPENDED, USER_STATUS.BANNED],

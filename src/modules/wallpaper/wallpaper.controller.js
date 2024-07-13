@@ -179,10 +179,10 @@ const getWallpaperBySlug = async (req, res) => {
     if (result) {
       const getAuthor = await User.findById({
         _id: result?.user?.toString(),
-      }).select("name username verified");
+      }).select("name username verified verification_status role");
       const profile = await Profile.findOne({
         user: result?.user?.toString(),
-      }).select("profile_image verification_status name profile_type");
+      }).select("profile_image");
 
       res.status(200).json({
         status: 200,
@@ -193,10 +193,6 @@ const getWallpaperBySlug = async (req, res) => {
           author_info: {
             ...getAuthor?.toObject(),
             profile_image: profile?.profile_image || null,
-            verification_status:
-              profile.verification_status === "Approved" ? true : false,
-            name: profile?.name,
-            profile_type: profile?.profile_type,
           },
         },
       });
