@@ -96,6 +96,7 @@ const getRemovalRequests = async (req, res) => {
 
             const newData = {
               _id: currentItem?._id,
+              status: currentItem?.status,
               type: currentItem?.type,
               message: currentItem?.message,
               targetId: currentItem?.targetId?._id,
@@ -175,6 +176,7 @@ const getClaimRequests = async (req, res) => {
 
             const newData = {
               _id: currentItem?._id,
+              status: currentItem?.status,
               type: currentItem?.type,
               message: currentItem?.message,
               targetId: currentItem?.targetId?._id,
@@ -252,6 +254,7 @@ const getUserReports = async (req, res) => {
 
             const newData = {
               _id: currentItem?._id,
+              status: currentItem?.status,
               type: currentItem?.type,
               message: currentItem?.message,
               targetId: currentItem?.targetId?._id,
@@ -343,6 +346,7 @@ const getReviewedReports = async (req, res) => {
 
             const newData = {
               _id: currentItem?._id,
+              status: currentItem?.status,
               type: currentItem?.type,
               message: currentItem?.message,
               targetId: currentItem?.targetId?._id,
@@ -380,6 +384,10 @@ const getReviewedReports = async (req, res) => {
               newData["title"] = `has reported an user.`;
             } else if (currentItem?.type === REPORT_TYPES.CLAIM_REQUEST) {
               newData["title"] = `has submitted a claim.`;
+            } else if (currentItem?.type === REPORT_TYPES.REMOVAL_REQUEST) {
+              newData["title"] = `has submitted a removal request.`;
+            } else {
+              newData["title"] = `has submitted a report.`;
             }
             return newData;
           })
@@ -408,24 +416,24 @@ const modifyReport = async (req, res) => {
 
     const isExistVerify = await Report.findOne({ _id: id });
     if (isExistVerify) {
-      if (isExistVerify?.targetType === "User") {
-        await User.updateOne(
-          { _id: isExistVerify?.targetId },
-          { $inc: { totalReports: -1 } }
-        );
-      } else {
-        await Wallpaper.updateOne(
-          { _id: isExistVerify?.targetId },
-          { $inc: { totalReports: -1 } }
-        );
-      }
-
       if (req.body.status === "Dismiss") {
         const result = await Report.updateOne(
           { _id: id },
           { $set: { status: "Dismiss" } },
           { new: true }
         );
+
+        if (isExistVerify?.targetType === "User") {
+          await User.updateOne(
+            { _id: isExistVerify?.targetId },
+            { $inc: { totalReports: -1 } }
+          );
+        } else {
+          await Wallpaper.updateOne(
+            { _id: isExistVerify?.targetId },
+            { $inc: { totalReports: -1 } }
+          );
+        }
         return res.status(200).json({
           success: true,
           message: "Report dismiss successfully",
