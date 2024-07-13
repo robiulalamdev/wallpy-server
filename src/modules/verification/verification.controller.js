@@ -67,7 +67,7 @@ const getVerifications = async (req, res) => {
             }).select("profile_image");
             return {
               ...currentItem.toObject(),
-              message: `has requested ${currentItem?.type} verification.`,
+              title: `has requested ${currentItem?.type} verification.`,
               profile: profile,
             };
           })
@@ -106,7 +106,7 @@ const getReviewedVerifications = async (req, res) => {
             }).select("profile_image");
             return {
               ...currentItem.toObject(),
-              message: `has requested ${currentItem?.type} verification.`,
+              title: `has requested ${currentItem?.type} verification.`,
               profile: profile,
             };
           })

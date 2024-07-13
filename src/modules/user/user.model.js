@@ -81,6 +81,11 @@ const userSchema = new Schema(
       type: String,
       required: false,
     },
+    totalReports: {
+      type: Number,
+      default: 0,
+      required: false,
+    },
     lastActive: {
       type: Date,
       required: false,
