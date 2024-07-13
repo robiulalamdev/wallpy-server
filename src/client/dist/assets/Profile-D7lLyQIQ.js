@@ -1,0 +1,1 @@
+import{e as o,B as s,j as r,R as a}from"./index-CTK2NSWl.js";import{O as e,P as i}from"./OfficialBrandProfileMain-BEwpBRhZ.js";const f=()=>{const{user:t}=o.useContext(s);return r.jsx(r.Fragment,{children:(t==null?void 0:t.role)===a.BRAND?r.jsx(e,{user:t}):r.jsx(i,{user:t})})};export{f as default};
