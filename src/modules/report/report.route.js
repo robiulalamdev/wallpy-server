@@ -6,6 +6,7 @@ const {
   getClaimRequests,
   getReviewedReports,
   modifyReport,
+  getTotalReports,
 } = require("./report.controller");
 const { isAuth, isAuthenticated } = require("../../middlewares/auth");
 const { ROLE_DATA } = require("../user/user.constants");
@@ -37,6 +38,11 @@ router.get(
   "/reviewed",
   isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
   getReviewedReports
+);
+router.get(
+  "/total",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  getTotalReports
 );
 
 module.exports = { reportRoutes: router };

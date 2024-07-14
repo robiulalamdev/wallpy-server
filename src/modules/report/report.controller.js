@@ -463,6 +463,24 @@ const modifyReport = async (req, res) => {
   }
 };
 
+const getTotalReports = async (req, res) => {
+  try {
+    const result = await Report.countDocuments({ status: "Pending" });
+    return res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Reports retrieve successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(501).json({
+      success: false,
+      message: "Reports retrieve unSuccessfully",
+      errorMessage: error.message,
+    });
+  }
+};
+
 module.exports = {
   sendReport,
   getUserReports,
@@ -470,4 +488,5 @@ module.exports = {
   getRemovalRequests,
   getClaimRequests,
   modifyReport,
+  getTotalReports,
 };
