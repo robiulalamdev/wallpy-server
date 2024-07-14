@@ -1,3 +1,4 @@
+const Profile = require("../profile/profile.model");
 const DamMessage = require("./damMessage.model");
 
 const createDamMessage = async (req, res) => {
@@ -13,11 +14,20 @@ const createDamMessage = async (req, res) => {
       path: "user",
       select: "role username name email",
     });
+    const userProfile = await Profile.findOne({
+      user: populatedMessage?.user?._id,
+    }).select("profile_image");
 
     res.status(200).json({
       success: true,
       message: "Message Send Successfully",
-      data: populatedMessage,
+      data: {
+        ...populatedMessage.toObject(),
+        user: {
+          ...populatedMessage?.user.toObject(),
+          profile: { profile_image: userProfile?.profile_image },
+        },
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -41,6 +51,23 @@ const getAllDamMessages = async (req, res) => {
       .populate({
         path: "user",
         select: "role username name email",
+      })
+      .then(async function (items) {
+        const populatedFeatured = await Promise.all(
+          items.map(async (currentItem) => {
+            const userProfile = await Profile.findOne({
+              user: currentItem?.user?._id,
+            }).select("profile_image");
+            return {
+              ...currentItem.toObject(),
+              user: {
+                ...currentItem?.user.toObject(),
+                profile: { profile_image: userProfile?.profile_image },
+              },
+            };
+          })
+        );
+        return populatedFeatured;
       });
 
     const total = await DamMessage.countDocuments({});
