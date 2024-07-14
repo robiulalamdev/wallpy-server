@@ -1013,6 +1013,38 @@ const modifyPrivilegesInfo = async (req, res) => {
   }
 };
 
+const getMediaArtistInfoByUsername = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoByUsername(req.params.username);
+    if (isExistUser) {
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "User retrieve successfully",
+        data: {
+          _id: isExistUser?._id,
+          username: isExistUser?.username,
+          profile_image: isExistUser?.profile?.profile_image,
+        },
+      });
+    } else {
+      res.status(201).json({
+        status: 201,
+        success: false,
+        exist: false,
+        message: "User not found",
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User retrieve unSuccessfully",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -1035,4 +1067,5 @@ module.exports = {
   changePasswordFromDashboard,
   updateLoginInformation,
   modifyPrivilegesInfo,
+  getMediaArtistInfoByUsername,
 };

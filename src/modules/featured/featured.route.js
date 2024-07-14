@@ -7,6 +7,8 @@ const {
   getFeaturedData,
   getStaffFeatured,
   getCredentialsFeatured,
+  getArtistsFeatured,
+  getArtistsFeaturedData,
 } = require("./featured.controller");
 const router = express.Router();
 
@@ -16,6 +18,8 @@ router.post(
   addFeatured
 );
 router.get("/", getFeaturedData);
+
+router.get("/public/artists", getArtistsFeaturedData);
 
 router.get(
   "/contact",
@@ -31,6 +35,12 @@ router.get(
   "/credentials",
   isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
   getCredentialsFeatured
+);
+
+router.get(
+  "/artists",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  getArtistsFeatured
 );
 
 module.exports = { featuredRoutes: router };

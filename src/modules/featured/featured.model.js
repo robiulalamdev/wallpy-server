@@ -13,7 +13,7 @@ const featuredSchema = new Schema(
     },
     targetType: {
       type: String,
-      enum: ["Profile", "Wallpaper"],
+      enum: ["User", "Wallpaper"],
       required: true,
     },
   },

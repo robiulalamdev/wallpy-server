@@ -1,3 +1,5 @@
+const Profile = require("../profile/profile.model");
+const User = require("../user/user.model");
 const Featured = require("./featured.model");
 
 const addFeatured = async (req, res) => {
@@ -143,6 +145,96 @@ const getCredentialsFeatured = async (req, res) => {
   }
 };
 
+const getArtistsFeatured = async (req, res) => {
+  try {
+    const result = await Featured.find({
+      type: "Artist",
+      targetType: "User",
+    })
+      .limit(6)
+      .sort({ _id: -1 })
+      .then(async function (items) {
+        const populatedFeatured = await Promise.all(
+          items.map(async (currentItem) => {
+            await currentItem.populate({
+              path: "targetId",
+              model: currentItem.targetType,
+              select: "username name role verification_status",
+            });
+
+            const profile = await Profile.findOne({
+              user: currentItem?.targetId?._id,
+            }).select("profile_image");
+            return {
+              ...currentItem.toObject(),
+              username: currentItem?.targetId?.username,
+              name: currentItem?.targetId?.name,
+              role: currentItem?.targetId?.role,
+              verification_status: currentItem?.targetId?.verification_status,
+              profile_image: profile?.profile_image,
+              targetId: currentItem?.targetId?._id,
+            };
+          })
+        );
+        return populatedFeatured;
+      });
+
+    res.status(201).json({
+      success: true,
+      message: "Featured Retrieve Success",
+      data: result,
+    });
+  } catch (error) {
+    res.status(201).json({
+      success: false,
+      message: "Featured Retrieve Failed",
+      error_message: error.message,
+    });
+  }
+};
+
+const getArtistsFeaturedData = async (req, res) => {
+  try {
+    const items = await Featured.aggregate([
+      { $match: { type: "Artist", targetType: "User" } },
+      { $sample: { size: 5 } },
+    ]);
+
+    const populatedFeatured = await Promise.all(
+      items.map(async (currentItem) => {
+        const user = await User.findById({ _id: currentItem.targetId }).select(
+          "username name role verification_status"
+        );
+
+        const profile = await Profile.findOne({
+          user: currentItem?.targetId,
+        }).select("profile_image");
+
+        return {
+          ...currentItem,
+          username: user?.username,
+          name: user?.name,
+          role: user?.role,
+          verification_status: user?.verification_status,
+          profile_image: profile?.profile_image,
+        };
+      })
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Featured artists retrieve Success",
+      data: populatedFeatured,
+    });
+  } catch (error) {
+    res.status(201).json({
+      success: false,
+      message: "Featured artists retrieve Failed",
+      error_message: error.message,
+    });
+  }
+};
+
 const getFeaturedData = async (req, res) => {
   try {
     const { type = "", targetType = "", limit } = req.query;
@@ -189,4 +281,6 @@ module.exports = {
   getStaffFeatured,
   getFeaturedData,
   getCredentialsFeatured,
+  getArtistsFeatured,
+  getArtistsFeaturedData,
 };

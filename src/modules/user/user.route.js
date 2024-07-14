@@ -21,6 +21,7 @@ const {
   changePasswordFromDashboard,
   updateLoginInformation,
   modifyPrivilegesInfo,
+  getMediaArtistInfoByUsername,
 } = require("./user.controller");
 const { isAuth, isAuthenticated } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -86,6 +87,11 @@ router.patch(
   "/modify/privileges-update/:id",
   isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
   modifyPrivilegesInfo
+);
+router.post(
+  "/media/artists/:username",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  getMediaArtistInfoByUsername
 );
 
 router.get("/test/action", testAction);
