@@ -16,10 +16,10 @@ const featuredSchema = new Schema(
       enum: ["User", "Wallpaper"],
       required: true,
     },
-    serialNo: {
-      type: Number,
-      required: true,
-    },
+    // serialNo: {
+    //   type: Number,
+    //   required: true,
+    // },
   },
   { timeseries: true, timestamps: true }
 );
