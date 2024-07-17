@@ -52,6 +52,24 @@ const createVerificationRequest = async (req, res) => {
   }
 };
 
+const getTotalVerificationRequests = async (req, res) => {
+  try {
+    const result = await Verification.countDocuments({ status: "Pending" });
+    return res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Verifications retrieve successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(501).json({
+      success: false,
+      message: "Verifications retrieve unSuccessfully",
+      errorMessage: error.message,
+    });
+  }
+};
+
 const getVerifications = async (req, res) => {
   try {
     const result = await Verification.find({ status: "Pending" })
@@ -185,6 +203,7 @@ const modifyVerificationRequest = async (req, res) => {
 
 module.exports = {
   createVerificationRequest,
+  getTotalVerificationRequests,
   getVerifications,
   getReviewedVerifications,
   modifyVerificationRequest,

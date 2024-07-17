@@ -4,6 +4,7 @@ const {
   getVerifications,
   getReviewedVerifications,
   modifyVerificationRequest,
+  getTotalVerificationRequests,
 } = require("./verification.controller");
 const { upload, handleMulterError } = require("../../config/multer");
 const { isAuth, isAuthenticated } = require("../../middlewares/auth");
@@ -17,6 +18,13 @@ router.post(
   handleMulterError,
   createVerificationRequest
 );
+
+router.get(
+  "/total-requests",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  getTotalVerificationRequests
+);
+
 router.get(
   "/",
   isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
