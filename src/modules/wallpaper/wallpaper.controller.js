@@ -436,12 +436,11 @@ const deleteWallpapersByIds = async (req, res) => {
     if (isExistUser) {
       const result = await Wallpaper.deleteMany({
         _id: { $in: req.body.ids },
-        user: req.user._id,
       });
       res.status(200).json({
         status: 200,
         success: true,
-        message: "Wallpaper Created Successfully",
+        message: "Wallpaper deleted successfully",
         data: result,
       });
     } else {
