@@ -11,6 +11,8 @@ const sendReport = async (req, res) => {
       $and: [
         { reporter: userId },
         { status: "Pending" },
+        { status: { $ne: "Dismiss" } },
+        { status: { $ne: "Reviewed" } },
         {
           $or: [
             { type: REPORT_TYPES.USER_REPORT },
@@ -266,6 +268,7 @@ const getUserReports = async (req, res) => {
               createdAt: currentItem?.createdAt,
             };
             if (currentItem?.targetType === "User") {
+              console.log(currentItem);
               const data = {
                 username: currentItem?.targetId?.username,
                 totalReports: currentItem?.targetId?.totalReports,
@@ -303,8 +306,9 @@ const getReviewedReports = async (req, res) => {
     const result = await Report.find({
       $and: [
         { status: { $ne: "Pending" } },
+        { status: { $ne: "Dismiss" } },
         {
-          $or: [{ status: "Dismiss" }, { status: "Reviewed" }],
+          $or: [{ status: "Reviewed" }],
         },
         {
           $or: [
@@ -444,6 +448,19 @@ const modifyReport = async (req, res) => {
         const result = await Report.updateOne(
           { _id: id },
           { $set: { status: "Reviewed" } },
+          { new: true }
+        );
+
+        return res.status(200).json({
+          success: true,
+          message: "Report reviewed successfully",
+          data: result,
+        });
+      }
+      if (req.body.status === "Pending") {
+        const result = await Report.updateOne(
+          { _id: id },
+          { $set: { status: "Pending" } },
           { new: true }
         );
 

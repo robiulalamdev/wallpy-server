@@ -4,7 +4,7 @@ const featuredSchema = new Schema(
   {
     type: {
       type: String,
-      enum: ["Contact", "Staff", "Credential", "Artist", "Brand"],
+      enum: ["Wallpaper", "Contact", "Staff", "Credential", "Artist", "Brand"],
       required: true,
     },
     targetId: {
@@ -14,6 +14,10 @@ const featuredSchema = new Schema(
     targetType: {
       type: String,
       enum: ["User", "Wallpaper"],
+      required: true,
+    },
+    serialNo: {
+      type: Number,
       required: true,
     },
   },
