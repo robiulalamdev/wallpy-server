@@ -22,7 +22,7 @@ const userSettingsSchema = new Schema(
     nsfw: {
       type: Boolean,
       enum: [true, false],
-      default: true,
+      default: false,
       required: false,
     },
     acceptCommunityRules: {
