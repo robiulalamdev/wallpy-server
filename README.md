@@ -4,4 +4,5 @@
 
 ## Live Link:
 
--http://thewallpapersociety.com
+- http://thewallpapersociety.com
+- http://wps.com
