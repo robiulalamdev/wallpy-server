@@ -7,11 +7,10 @@ const PORT = VARIABLES.PORT || 9000;
 
 const connectDB = async () => {
   try {
-    // await mongoose.connect(process.env.DATABASE_URL, {
-    //   useNewUrlParser: true,
-    //   useUnifiedTopology: true,
-    // });
-    await mongoose.connect("mongodb+srv://host:local/port:27017/db");
+    await mongoose.connect(process.env.DATABASE_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
     console.log("mongodb connection success!");
   } catch (err) {
     console.log("mongodb connection failed", err.message);

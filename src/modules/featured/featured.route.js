@@ -9,6 +9,7 @@ const {
   getCredentialsFeatured,
   getArtistsFeatured,
   getArtistsFeaturedData,
+  getFeaturedWallpapers,
 } = require("./featured.controller");
 const router = express.Router();
 
@@ -19,6 +20,11 @@ router.post(
 );
 router.get("/", getFeaturedData);
 
+router.get(
+  "/wallpaper",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  getFeaturedWallpapers
+);
 router.get("/public/artists", getArtistsFeaturedData);
 
 router.get(
