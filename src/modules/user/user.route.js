@@ -22,6 +22,7 @@ const {
   updateLoginInformation,
   modifyPrivilegesInfo,
   getMediaArtistInfoByUsername,
+  getUserInfoByProfileURL,
 } = require("./user.controller");
 const { isAuth, isAuthenticated } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -92,6 +93,11 @@ router.post(
   "/media/artists/:username",
   isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
   getMediaArtistInfoByUsername
+);
+router.post(
+  "/media/info/:username",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  getUserInfoByProfileURL
 );
 
 router.get("/test/action", testAction);

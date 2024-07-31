@@ -1045,6 +1045,47 @@ const getMediaArtistInfoByUsername = async (req, res) => {
   }
 };
 
+const getUserInfoByProfileURL = async (req, res) => {
+  try {
+    const isExistUser = await User.findOne({
+      username: req.params.username,
+    }).select("username role verification_status");
+    if (isExistUser) {
+      const profile = await Profile.findOne({
+        user: isExistUser?._id.toString(),
+      }).select("banner official_banner");
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "User retrieve successfully",
+        data: {
+          _id: isExistUser?._id,
+          username: isExistUser?.username,
+          banner:
+            isExistUser?.role === ROLE_DATA.BRAND &&
+            isExistUser?.verification_status === true
+              ? profile?.official_banner || ""
+              : profile?.banner || "",
+        },
+      });
+    } else {
+      res.status(201).json({
+        status: 201,
+        success: false,
+        exist: false,
+        message: "User not found",
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User retrieve unSuccessfully",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -1068,4 +1109,5 @@ module.exports = {
   updateLoginInformation,
   modifyPrivilegesInfo,
   getMediaArtistInfoByUsername,
+  getUserInfoByProfileURL,
 };

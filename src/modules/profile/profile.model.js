@@ -47,14 +47,17 @@ const userProfileSchema = new Schema(
     },
     profile_image: {
       type: String,
+      default: "src/assets/images/profile/profile.png",
       required: false,
     },
     banner: {
       type: String,
+      default: "src/assets/images/profile/banner.png",
       required: false,
     },
     official_banner: {
       type: String,
+      default: "src/assets/images/profile/banner.png",
       required: false,
     },
     bio: {
