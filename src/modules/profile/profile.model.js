@@ -81,6 +81,11 @@ const userProfileSchema = new Schema(
       type: String,
       required: false,
     },
+    ip: {
+      type: String,
+      default: "0.0.0.0",
+      required: false,
+    },
     zip: {
       type: Number,
       required: false,

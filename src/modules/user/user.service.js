@@ -23,6 +23,7 @@ const createNewUser = async (data, ip) => {
       countryCode: location?.countryCode,
       zip: location?.zip,
       flag: location?.flag,
+      ip: ip,
     });
     const newSettings = new Settings({ user: result?._id.toString() });
     const settingsResult = await newSettings.save();

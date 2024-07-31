@@ -70,7 +70,7 @@ const getContactFeatured = async (req, res) => {
       targetType: "Wallpaper",
     })
       .limit(6)
-      .sort({ _id: -1 })
+      .sort({ serialNo: -1 })
       .then(async function (items) {
         const populatedFeatured = await Promise.all(
           items.map(async (currentItem) => {
@@ -111,7 +111,7 @@ const getStaffFeatured = async (req, res) => {
       targetType: "Wallpaper",
     })
       .limit(6)
-      .sort({ _id: -1 })
+      .sort({ serialNo: -1 })
       .then(async function (items) {
         const populatedFeatured = await Promise.all(
           items.map(async (currentItem) => {
@@ -152,7 +152,7 @@ const getCredentialsFeatured = async (req, res) => {
       targetType: "Wallpaper",
     })
       .limit(6)
-      .sort({ _id: -1 })
+      .sort({ serialNo: -1 })
       .then(async function (items) {
         const populatedFeatured = await Promise.all(
           items.map(async (currentItem) => {
@@ -193,7 +193,7 @@ const getArtistsFeatured = async (req, res) => {
       targetType: "User",
     })
       .limit(6)
-      .sort({ _id: -1 })
+      .sort({ serialNo: -1 })
       .then(async function (items) {
         const populatedFeatured = await Promise.all(
           items.map(async (currentItem) => {
