@@ -29,7 +29,7 @@ const getFeaturedWallpapers = async (req, res) => {
       targetType: "Wallpaper",
     })
       .limit(6)
-      .sort({ _id: -1 })
+      .sort({ serialNo: -1 })
       .then(async function (items) {
         const populatedFeatured = await Promise.all(
           items.map(async (currentItem) => {
