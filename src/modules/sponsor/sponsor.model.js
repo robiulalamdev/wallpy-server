@@ -16,6 +16,11 @@ const sponsorSchema = new Schema(
       type: Number,
       required: false,
     },
+    clickThrough: {
+      type: [Date],
+      default: [],
+      required: false,
+    },
   },
   { timeseries: true, timestamps: true }
 );

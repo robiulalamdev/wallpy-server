@@ -1,10 +1,14 @@
 // Adjust the path as necessary
 
+const { default: mongoose } = require("mongoose");
+const Sponsor = require("../sponsor/sponsor.model");
 const User = require("../user/user.model");
 const { WALLPAPER_ENUMS } = require("../wallpaper/wallpaper.constant");
 const Wallpaper = require("../wallpaper/wallpaper.model");
 const Analytics = require("./analytics.model");
 const { trackingVisitor } = require("./analytics.service");
+const { ROLE_DATA } = require("../user/user.constants");
+const Profile = require("../profile/profile.model");
 
 const handleTrackingVisitor = async (req, res) => {
   try {
@@ -183,6 +187,67 @@ const getDashboardStats = async (req, res) => {
       ]),
     ]);
 
+    const sponsors = await Sponsor.find({ type: "Main" }).then(async function (
+      items
+    ) {
+      const populatedSponsor = await Promise.all(
+        items.map(async (currentItem) => {
+          let clicks = [];
+          if (startDate && endDate) {
+            clicks = await Sponsor.aggregate([
+              {
+                $match: {
+                  _id: new mongoose.Types.ObjectId(currentItem?._id),
+                  clickThrough: {
+                    $elemMatch: {
+                      $gte: new Date(startDate),
+                      $lt: new Date(endDate),
+                    },
+                  },
+                },
+              },
+              {
+                $project: {
+                  clicks: {
+                    $size: {
+                      $filter: {
+                        input: "$clickThrough",
+                        as: "date",
+                        cond: {
+                          $and: [
+                            { $gte: ["$$date", new Date(startDate)] },
+                            { $lt: ["$$date", new Date(endDate)] },
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            ]);
+          } else {
+            clicks = [{ clicks: currentItem?.clickThrough?.length }];
+          }
+
+          const profile = await Profile.findOne({
+            user: currentItem?.user,
+          }).select("banner official_banner");
+
+          return {
+            totalClicks: clicks[0]?.clicks || 0,
+            banner:
+              currentItem?.user?.role === ROLE_DATA.BRAND &&
+              currentItem?.user?.verification_status === true
+                ? profile?.official_banner || ""
+                : profile?.banner || "",
+          };
+        })
+      );
+      return populatedSponsor;
+    });
+
+    sponsors.sort((a, b) => a.totalClicks - b.totalClicks);
+
     res.status(200).json({
       status: 200,
       success: true,
@@ -192,6 +257,7 @@ const getDashboardStats = async (req, res) => {
         totalUploadedWallpapers: uploadedWallpapers,
         totalRegisteredAccounts: registeredAccounts,
         totalVisitors: totalVisitors[0]?.visitorsCount || 0,
+        sponsors: sponsors,
       },
     });
   } catch (error) {

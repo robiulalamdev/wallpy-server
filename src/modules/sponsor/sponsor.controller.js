@@ -80,6 +80,7 @@ const getMainSponsorsData = async (req, res) => {
               user: currentItem?.user?._id,
             }).select("banner official_banner");
             return {
+              _id: currentItem?._id,
               userId: currentItem?.user?._id,
               username: currentItem?.user?.username,
               banner:
@@ -107,8 +108,35 @@ const getMainSponsorsData = async (req, res) => {
   }
 };
 
+const sponsorClickThrough = async (req, res) => {
+  try {
+    const result = await Sponsor.updateOne(
+      { _id: req.params.id },
+      {
+        $push: {
+          clickThrough: req.body.date || Date.now(),
+        },
+      }
+    );
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Sponsor Click Through Successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   addSponsor,
   getMainSponsors,
   getMainSponsorsData,
+  sponsorClickThrough,
 };

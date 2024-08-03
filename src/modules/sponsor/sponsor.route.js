@@ -5,6 +5,7 @@ const {
   addSponsor,
   getMainSponsors,
   getMainSponsorsData,
+  sponsorClickThrough,
 } = require("./sponsor.controller");
 const router = express.Router();
 
@@ -20,5 +21,6 @@ router.get(
   getMainSponsors
 );
 router.get("/public/main", getMainSponsorsData);
+router.post("/click-through/:id", sponsorClickThrough);
 
 module.exports = { sponsorRoutes: router };
