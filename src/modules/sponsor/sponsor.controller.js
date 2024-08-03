@@ -79,8 +79,9 @@ const getMainSponsorsData = async (req, res) => {
             const profile = await Profile.findOne({
               user: currentItem?.user?._id,
             }).select("banner official_banner");
+            console.log(currentItem);
             return {
-              _id: currentItem?._id,
+              _id: currentItem?._id.toString(),
               userId: currentItem?.user?._id,
               username: currentItem?.user?.username,
               banner:
