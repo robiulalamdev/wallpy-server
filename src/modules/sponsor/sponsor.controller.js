@@ -73,35 +73,42 @@ const getMainSponsorsData = async (req, res) => {
       .limit(4)
       .sort({ _id: -1 })
       .populate("user", "username role verification_status")
-      .then(async function (items) {
-        const populatedSponsor = await Promise.all(
-          items.map(async (currentItem) => {
-            const profile = await Profile.findOne({
-              user: currentItem?.user?._id,
-            }).select("banner official_banner");
-            console.log(currentItem);
-            return {
-              _id: currentItem?._id.toString(),
-              userId: currentItem?.user?._id,
-              username: currentItem?.user?.username,
-              banner:
-                currentItem?.user?.role === ROLE_DATA.BRAND &&
-                currentItem?.user?.verification_status === true
-                  ? profile?.official_banner || ""
-                  : profile?.banner || "",
-            };
-          })
-        );
-        return populatedSponsor;
-      });
+      .select("_id user")
+      .exec(); // Use exec to handle promises explicitly
+
+    const populatedSponsor = await Promise.all(
+      result.map(async (currentItem) => {
+        if (!currentItem || !currentItem._id) {
+          console.error("Sponsor item or _id is missing:", currentItem);
+          return null;
+        }
+
+        const profile = await Profile.findOne({
+          user: currentItem.user._id,
+        }).select("banner official_banner");
+
+        return {
+          _id: currentItem._id.toString(),
+          userId: currentItem.user._id,
+          username: currentItem.user.username,
+          banner:
+            currentItem.user.role === ROLE_DATA.BRAND &&
+            currentItem.user.verification_status === true
+              ? profile?.official_banner || ""
+              : profile?.banner || "",
+        };
+      })
+    );
+
+    const validSponsors = populatedSponsor.filter((item) => item !== null);
 
     res.status(201).json({
       success: true,
       message: "Sponsors Retrieve Success",
-      data: result,
+      data: validSponsors,
     });
   } catch (error) {
-    res.status(201).json({
+    res.status(500).json({
       success: false,
       message: "Sponsors Retrieve Failed",
       error_message: error.message,
