@@ -1,9 +1,5 @@
 const express = require("express");
-const {
-  isAuth,
-  isSetUser,
-  isAuthenticated,
-} = require("../../middlewares/auth");
+const { isAuthenticated } = require("../../middlewares/auth");
 const {
   getDashboardStats,
   handleTrackingVisitor,
