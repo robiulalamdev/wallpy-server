@@ -917,7 +917,7 @@ const updateLoginInformation = async (req, res) => {
     if (isExistUser) {
       const isExistUsername = await User.findOne({
         $and: [
-          { username: { $regex: new RegExp(`^${req.body.username}$`, "i") } },
+          { username: req?.body?.username },
           { _id: { $ne: req.params.id } },
         ],
       });

@@ -244,7 +244,7 @@ const getArtistsFeaturedData = async (req, res) => {
     const populatedFeatured = await Promise.all(
       items.map(async (currentItem) => {
         const user = await User.findById({ _id: currentItem.targetId }).select(
-          "username name role verification_status"
+          "username name role verification_status verified"
         );
 
         const profile = await Profile.findOne({
@@ -256,6 +256,7 @@ const getArtistsFeaturedData = async (req, res) => {
           username: user?.username,
           name: user?.name,
           role: user?.role,
+          verified: user?.verified,
           verification_status: user?.verification_status,
           profile_image: profile?.profile_image,
         };
