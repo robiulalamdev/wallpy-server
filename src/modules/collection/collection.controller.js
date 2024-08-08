@@ -114,7 +114,8 @@ const getMyProfileCollections = async (req, res) => {
         status: true,
         $expr: { $gt: [{ $size: "$wallpapers" }, 0] },
       })
-        .populate({ path: "wallpapers", options: { limit: 4 } })
+        .populate({ path: "wallpapers" })
+        // .populate({ path: "wallpapers", options: { limit: 4 } })
         .sort({ _id: -1 })
         .skip(skip)
         .limit(limit);
