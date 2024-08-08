@@ -1086,6 +1086,72 @@ const getUserInfoByProfileURL = async (req, res) => {
   }
 };
 
+const getBrands = async (req, res) => {
+  try {
+    const page = parseInt(req.query?.page) || 1;
+    const limit = parseInt(req.query?.limit) || 12;
+    const search = req.query?.search || "";
+
+    const skip = (page - 1) * limit;
+
+    // Create the search query
+    const searchQuery = {
+      $and: [{ status: USER_STATUS.ACTIVE }, { role: ROLE_DATA.BRAND }],
+      $or: [{ name: { $regex: search, $options: "i" } }],
+    };
+
+    // Find users with the search query
+    const result = await User.find(searchQuery)
+      .sort({ _id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .select("name username")
+      .then(async function (users) {
+        const populateUsers = await Promise.all(
+          users.map(async (currentItem) => {
+            const profile = await Profile.findOne({
+              user: currentItem._id,
+            }).select("banner official_banner");
+
+            return {
+              ...currentItem.toObject(),
+              banner:
+                currentItem.role === ROLE_DATA.BRAND &&
+                currentItem.verification_status === true
+                  ? profile?.official_banner || ""
+                  : profile?.banner || "",
+            };
+          })
+        );
+        return populateUsers;
+      });
+
+    // Count the total number of users matching the search query
+    const total = await User.countDocuments(searchQuery);
+
+    return res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Users Retrieved successfully",
+      data: result,
+      meta: {
+        total: total,
+        page: page,
+        currentTotal: result.length,
+        limit: limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User retrieve unSuccessfully",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -1110,4 +1176,5 @@ module.exports = {
   modifyPrivilegesInfo,
   getMediaArtistInfoByUsername,
   getUserInfoByProfileURL,
+  getBrands,
 };

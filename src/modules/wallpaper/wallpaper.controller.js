@@ -714,6 +714,7 @@ const getSearchAndFilterWallpapers = async (req, res) => {
     let query = { status: WALLPAPER_ENUMS.STATUS[1] };
 
     const tag = req.query.tag;
+    const name = req.query.name || "";
 
     // Text search
     if (req.query.search) {
@@ -748,6 +749,15 @@ const getSearchAndFilterWallpapers = async (req, res) => {
           $elemMatch: { $eq: tag },
         },
       });
+    }
+
+    if (name) {
+      const brandUser = await User.findOne({ username: name }).select("_id");
+      if (brandUser) {
+        andQuery.push({
+          user: brandUser?._id.toString(),
+        });
+      }
     }
 
     let settings = null;
