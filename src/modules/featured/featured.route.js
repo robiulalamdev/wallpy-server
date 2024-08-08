@@ -10,6 +10,7 @@ const {
   getArtistsFeatured,
   getArtistsFeaturedData,
   getFeaturedWallpapers,
+  getFeaturedCredentialData,
 } = require("./featured.controller");
 const router = express.Router();
 
@@ -19,6 +20,15 @@ router.post(
   addFeatured
 );
 router.get("/", getFeaturedData);
+router.get("/public/credentials/login", getFeaturedCredentialData);
+router.get("/public/credentials/signup", getFeaturedCredentialData);
+router.get("/public/credentials/signup-cnf", getFeaturedCredentialData);
+router.get("/public/credentials/ev", getFeaturedCredentialData);
+router.get("/public/credentials/pcs", getFeaturedCredentialData);
+router.get("/public/credentials/fp", getFeaturedCredentialData);
+router.get("/public/credentials/fe", getFeaturedCredentialData);
+router.get("/public/credentials/rp", getFeaturedCredentialData);
+router.get("/public/credentials/np", getFeaturedCredentialData);
 
 router.get(
   "/wallpaper",

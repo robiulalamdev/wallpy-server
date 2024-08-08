@@ -317,6 +317,46 @@ const getFeaturedData = async (req, res) => {
   }
 };
 
+// for credentials
+
+const getFeaturedCredentialData = async (req, res) => {
+  try {
+    const items = await Featured.aggregate([
+      { $match: { type: "Credential", targetType: "Wallpaper" } },
+      { $sample: { size: 1 } },
+    ]);
+
+    const populatedFeatured = await Promise.all(
+      items.map(async (currentItem) => {
+        const populatedItem = await Featured.populate(currentItem, {
+          path: "targetId",
+          model: currentItem.targetType,
+          select: "wallpaper slug",
+        });
+        return {
+          ...populatedItem,
+          wallpaper: populatedItem?.targetId?.wallpaper,
+          slug: populatedItem?.targetId?.slug,
+          targetId: populatedItem?.targetId?._id,
+        };
+      })
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Featured Retrieve Success",
+      data: populatedFeatured[0] || null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   addFeatured,
   getFeaturedWallpapers,
@@ -326,4 +366,5 @@ module.exports = {
   getCredentialsFeatured,
   getArtistsFeatured,
   getArtistsFeaturedData,
+  getFeaturedCredentialData,
 };
