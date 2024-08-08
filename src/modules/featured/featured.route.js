@@ -11,6 +11,8 @@ const {
   getArtistsFeaturedData,
   getFeaturedWallpapers,
   getFeaturedCredentialData,
+  getBrandsFeatured,
+  getBrandsFeaturedData,
 } = require("./featured.controller");
 const router = express.Router();
 
@@ -29,6 +31,8 @@ router.get("/public/credentials/fp", getFeaturedCredentialData);
 router.get("/public/credentials/fe", getFeaturedCredentialData);
 router.get("/public/credentials/rp", getFeaturedCredentialData);
 router.get("/public/credentials/np", getFeaturedCredentialData);
+
+router.get("/public/brands", getBrandsFeaturedData);
 
 router.get(
   "/wallpaper",
@@ -57,6 +61,12 @@ router.get(
   "/artists",
   isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
   getArtistsFeatured
+);
+
+router.get(
+  "/brands",
+  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
+  getBrandsFeatured
 );
 
 module.exports = { featuredRoutes: router };
