@@ -518,7 +518,7 @@ const updateProfileTabInfo = async (req, res) => {
         }
         profileData["bio"] = req.body.bio || "";
 
-        const updateObject = { username: req.body.username };
+        const updateObject = { username: req.body.username?.toLowerCase() };
         await updateUserWithSetMethod(
           updateObject,
           isExistUser?._id.toString()
@@ -931,7 +931,7 @@ const updateLoginInformation = async (req, res) => {
       } else {
         const updateData = {};
         if (req.body.username) {
-          updateData["username"] = req.body.username;
+          updateData["username"] = req.body.username?.toLowerCase();
         }
         if (req.body.password) {
           updateData["password"] = bcrcypt.hashSync(req.body.password);

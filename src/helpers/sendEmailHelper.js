@@ -2,6 +2,14 @@ const VARIABLES = require("../config");
 const nodemailer = require("nodemailer");
 
 const transport = {
+  //   host: process.env.PRIMARY_MAIL,
+  //   port: 465,
+  //   secure: true,
+  //   auth: {
+  //     user: VARIABLES.MAIL_USER,
+  //     pass: VARIABLES.MAIL_PASS,
+  //   },
+
   service: "Gmail",
   auth: {
     user: VARIABLES.MAIL_USER,

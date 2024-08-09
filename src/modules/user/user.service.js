@@ -11,7 +11,7 @@ const createNewUser = async (data, ip) => {
     name: data.email.split("@")[0],
     password: bcrcypt.hashSync(data.password),
     email: data?.email,
-    username: data?.username,
+    username: data?.username?.toLowerCase(),
     verified: false,
   });
   const location = await getLocation(ip);
