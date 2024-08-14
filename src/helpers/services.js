@@ -8,7 +8,7 @@ const getLocation = async (ip) => {
     VARIABLES.NODE_ENV === "development" &&
     (clientIp === "::1" || clientIp === "127.0.0.1")
   ) {
-    clientIp = "8.8.8.8";
+    clientIp = "1.1.1.1";
   }
   try {
     const response = await axios.get(`http://ip-api.com/json/${clientIp}`);
