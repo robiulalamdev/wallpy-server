@@ -1,17 +1,46 @@
 const { getLocation } = require("../../helpers/services");
 const Profile = require("../profile/profile.model");
 const Settings = require("../settings/settings.model");
-const { WALLPAPER_ENUMS } = require("../wallpaper/wallpaper.constant");
 const Wallpaper = require("../wallpaper/wallpaper.model");
 const User = require("./user.model");
 const bcrcypt = require("bcryptjs");
 
+const generateUserSlug = async (username) => {
+  let slug = `${username?.replaceAll(" ", "")?.toLowerCase()}1`;
+  const existing = await User.findOne({
+    slug: { $regex: new RegExp(`^${slug}$`, "i") },
+  });
+  if (existing) {
+    let counter = 2;
+    while (true) {
+      const newSlug = `${slug}${counter}`;
+      const slugExists = await User.findOne({
+        slug: { $regex: new RegExp(`^${newSlug}$`, "i") },
+      });
+      if (!slugExists) {
+        slug = newSlug;
+        break;
+      }
+      counter++;
+    }
+  }
+  return slug;
+};
+
 const createNewUser = async (data, ip) => {
+  const isExist = await User.findOne({
+    slug: { $regex: new RegExp(`^${data?.username}$`, "i") },
+  });
+  let slug = data?.username?.replaceAll(" ", "")?.toLowerCase();
+  if (isExist) {
+    slug = await generateUserSlug(data?.username);
+  }
   const newUser = new User({
     name: data.email.split("@")[0],
     password: bcrcypt.hashSync(data.password),
     email: data?.email,
-    username: data?.username?.toLowerCase(),
+    username: data?.username,
+    slug: slug,
     verified: false,
   });
   const location = await getLocation(ip);
