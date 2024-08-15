@@ -30,7 +30,7 @@ const getMainSponsors = async (req, res) => {
     })
       .limit(5)
       .sort({ serialNo: -1 })
-      .populate("user", "username role verification_status")
+      .populate("user", "username slug role verification_status")
       .then(async function (items) {
         const populatedSponsor = await Promise.all(
           items.map(async (currentItem) => {
@@ -40,6 +40,7 @@ const getMainSponsors = async (req, res) => {
             return {
               userId: currentItem?.user?._id,
               username: currentItem?.user?.username,
+              slug: currentItem?.user?.slug,
               banner:
                 currentItem?.user?.role === ROLE_DATA.BRAND &&
                 currentItem?.user?.verification_status === true
@@ -72,7 +73,7 @@ const getMainSponsorsData = async (req, res) => {
     })
       .limit(4)
       .sort({ _id: -1 })
-      .populate("user", "username role verification_status")
+      .populate("user", "username slug role verification_status")
       .select("_id user")
       .exec(); // Use exec to handle promises explicitly
 
@@ -91,6 +92,7 @@ const getMainSponsorsData = async (req, res) => {
           _id: currentItem._id.toString(),
           userId: currentItem.user._id,
           username: currentItem.user.username,
+          slug: currentItem.user.slug,
           banner:
             currentItem.user.role === ROLE_DATA.BRAND &&
             currentItem.user.verification_status === true
