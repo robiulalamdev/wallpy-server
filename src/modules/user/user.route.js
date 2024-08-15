@@ -36,7 +36,7 @@ router.post("/signup", createUser);
 router.post("/email-verify/:token", verifyEmail);
 router.post("/login", loginUser);
 router.get("/me", isAuth, getUserInfo);
-router.get("/profile/:username", getPublicUserInfo);
+router.get("/profile/:slug", getPublicUserInfo);
 
 // reset password with email
 router.post("/reset-password", resetPassword);
@@ -91,12 +91,12 @@ router.patch(
   modifyPrivilegesInfo
 );
 router.post(
-  "/media/artists/:username",
+  "/media/artists/:slug",
   isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
   getMediaArtistInfoByUsername
 );
 router.post(
-  "/media/info/:username",
+  "/media/info/:slug",
   isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
   getUserInfoByProfileURL
 );
@@ -107,6 +107,15 @@ router.get("/test/action", testAction);
 router.get("/test/all-static", async (req, res) => {
   try {
     const result = await User.find({});
+    // for (let i = 0; i < result.length; i++) {
+    //   const element = result[i];
+    //   await User.updateOne(
+    //     { _id: element?._id },
+    //     {
+    //       $set: { slug: element?.username?.replaceAll(" ", "").toLowerCase() },
+    //     }
+    //   );
+    // }
     res.status(200).json(result);
   } catch (error) {}
 });

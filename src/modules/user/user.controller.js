@@ -29,6 +29,7 @@ const {
   getUserByIdWithPassword,
   getUserByEmail,
   getUserInfoByUsername,
+  getUserInfoBySlug,
 } = require("./user.service");
 const bcrcypt = require("bcryptjs");
 
@@ -460,7 +461,7 @@ const getUserInfo = async (req, res) => {
 // get user info by username
 const getPublicUserInfo = async (req, res) => {
   try {
-    const isExistUser = await getUserInfoByUsername(req.params.username);
+    const isExistUser = await getUserInfoBySlug(req.params.slug);
     if (isExistUser) {
       res.status(200).json({
         status: 200,
@@ -1015,7 +1016,7 @@ const modifyPrivilegesInfo = async (req, res) => {
 
 const getMediaArtistInfoByUsername = async (req, res) => {
   try {
-    const isExistUser = await getUserInfoByUsername(req.params.username);
+    const isExistUser = await getUserInfoBySlug(req.params.slug);
     if (isExistUser) {
       res.status(200).json({
         status: 200,
@@ -1023,7 +1024,7 @@ const getMediaArtistInfoByUsername = async (req, res) => {
         message: "User retrieve successfully",
         data: {
           _id: isExistUser?._id,
-          username: isExistUser?.username,
+          slug: isExistUser?.slug,
           profile_image: isExistUser?.profile?.profile_image,
         },
       });
@@ -1048,8 +1049,8 @@ const getMediaArtistInfoByUsername = async (req, res) => {
 const getUserInfoByProfileURL = async (req, res) => {
   try {
     const isExistUser = await User.findOne({
-      username: req.params.username,
-    }).select("username role verification_status");
+      slug: req.params.slug,
+    }).select("username slug role verification_status");
     if (isExistUser) {
       const profile = await Profile.findOne({
         user: isExistUser?._id.toString(),
@@ -1061,6 +1062,7 @@ const getUserInfoByProfileURL = async (req, res) => {
         data: {
           _id: isExistUser?._id,
           username: isExistUser?.username,
+          slug: isExistUser?.slug,
           banner:
             isExistUser?.role === ROLE_DATA.BRAND &&
             isExistUser?.verification_status === true

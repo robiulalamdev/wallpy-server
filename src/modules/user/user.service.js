@@ -103,6 +103,17 @@ const getUserInfoByUsername = async (username) => {
   }
 };
 
+const getUserInfoBySlug = async (slug) => {
+  const result = await User.findOne({ slug: slug });
+  if (result) {
+    const profile = await Profile.findOne({ user: result?._id.toString() });
+    const settings = await Settings.findOne({ user: result?._id.toString() });
+    return { ...result.toObject(), profile: profile, settings: settings };
+  } else {
+    return null;
+  }
+};
+
 const getUsername = async (username) => {
   const result = await User.findOne({ username: username });
   return result;
@@ -168,6 +179,7 @@ module.exports = {
   getUsername,
   getUserInfoById,
   getUserByUsername,
+  getUserInfoBySlug,
   updateUserWithSetMethod,
   getUserByIdWithPassword,
   getUserByEmail,

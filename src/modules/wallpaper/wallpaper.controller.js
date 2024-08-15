@@ -179,7 +179,7 @@ const getWallpaperBySlug = async (req, res) => {
     if (result) {
       const getAuthor = await User.findById({
         _id: result?.user?.toString(),
-      }).select("name username verified verification_status role");
+      }).select("name username slug verified verification_status role");
       const profile = await Profile.findOne({
         user: result?.user?.toString(),
       }).select("profile_image");
