@@ -109,12 +109,16 @@ router.get("/test/all-static", async (req, res) => {
     const result = await User.find({});
     // for (let i = 0; i < result.length; i++) {
     //   const element = result[i];
-    //   await User.updateOne(
-    //     { _id: element?._id },
-    //     {
-    //       $set: { slug: element?.username?.replaceAll(" ", "").toLowerCase() },
-    //     }
-    //   );
+    //   if (!element?.slug) {
+    //     await User.updateOne(
+    //       { _id: element?._id },
+    //       {
+    //         $set: {
+    //           slug: element?.username?.replaceAll(" ", "").toLowerCase(),
+    //         },
+    //       }
+    //     );
+    //   }
     // }
     res.status(200).json(result);
   } catch (error) {}
