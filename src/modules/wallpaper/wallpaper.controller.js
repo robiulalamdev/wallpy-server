@@ -64,7 +64,7 @@ const uploadSingleWallpaper = async (req, res) => {
           const result = await newWallpaper.save();
           res.status(200).json({
             success: true,
-            data: req.file?.path,
+            data: result,
             message: "upload successfully",
           });
         } else {
