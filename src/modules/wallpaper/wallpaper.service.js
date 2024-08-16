@@ -54,6 +54,26 @@ const wallpapersMake = async (files, userId) => {
   return wallpapers;
 };
 
+const singleWallpaperMake = async (file, userId) => {
+  const url = file?.path;
+  const imageMetadata = await getImageMetadata(url);
+  if (url) {
+    const slug = await generateShorten();
+    const data = {
+      user: userId,
+      wallpaper: file?.path,
+      slug: slug,
+      name: file?.name,
+      dimensions: imageMetadata,
+      size: file?.size,
+    };
+    return data;
+  } else {
+    return null;
+  }
+};
+
 module.exports = {
   wallpapersMake,
+  singleWallpaperMake,
 };

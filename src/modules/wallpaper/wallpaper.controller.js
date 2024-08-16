@@ -5,12 +5,82 @@ const User = require("../user/user.model");
 const { getUserInfoById } = require("../user/user.service");
 const { WALLPAPER_ENUMS } = require("./wallpaper.constant");
 const Wallpaper = require("./wallpaper.model");
-const { wallpapersMake } = require("./wallpaper.service");
+const { wallpapersMake, singleWallpaperMake } = require("./wallpaper.service");
 
 const createWallpapers = async (req, res) => {
   try {
     const isExistUser = await getUserInfoById(req.user._id);
     if (isExistUser) {
+      if (req.files && req.files.length > 0) {
+        const wallpapers = await wallpapersMake(
+          req.files,
+          isExistUser?._id?.toString()
+        );
+        if (wallpapers?.length > 0) {
+          const result = await Wallpaper.insertMany(wallpapers);
+          res.status(200).json({
+            status: 200,
+            success: true,
+            message: "Wallpaper Created Successfully",
+            data: result,
+          });
+        } else {
+          res.status(400).json({
+            status: 400,
+            success: false,
+            message: "No wallpapers uploaded",
+          });
+        }
+      }
+    } else {
+      res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User Not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
+const uploadSingleWallpaper = async (req, res) => {
+  try {
+    const isExistUser = await getUserInfoById(req.user._id);
+    if (isExistUser) {
+      if (req.file) {
+        const wallpaper = await singleWallpaperMake(
+          req.file,
+          isExistUser?._id?.toString()
+        );
+        if (wallpaper) {
+          const newWallpaper = new Wallpaper({ ...wallpaper });
+          const result = await newWallpaper.save();
+          res.status(200).json({
+            success: true,
+            data: req.file?.path,
+            message: "upload successfully",
+          });
+        } else {
+          res.status(200).json({
+            success: false,
+            data: null,
+            message: "upload unSuccessfully",
+          });
+        }
+      } else {
+        res.status(200).json({
+          success: false,
+          data: null,
+          message: "upload unSuccessfully",
+        });
+      }
       if (req.files && req.files.length > 0) {
         const wallpapers = await wallpapersMake(
           req.files,
@@ -1316,6 +1386,7 @@ const getTopCategories = async (req, res) => {
 
 module.exports = {
   createWallpapers,
+  uploadSingleWallpaper,
   getWallpapers,
   getWallpapersByUserId,
   deleteWallpapersByIds,

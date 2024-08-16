@@ -70,7 +70,34 @@ const getResizeImage = async (req, res) => {
   }
 };
 
+// upload image
+const uploadFile = async (req, res) => {
+  try {
+    if (req.file) {
+      res.status(200).json({
+        success: true,
+        data: req.file?.path,
+        message: "upload successfully",
+      });
+    } else {
+      res.status(200).json({
+        success: false,
+        data: null,
+        message: "upload unSuccessfully",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   sendMessage,
   getResizeImage,
+  uploadFile,
 };

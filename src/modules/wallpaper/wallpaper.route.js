@@ -23,6 +23,7 @@ const {
   getMostDownloadedWallpapers,
   addNewDownloadCountByWallId,
   getTopCategories,
+  uploadSingleWallpaper,
 } = require("./wallpaper.controller");
 const {
   isAuth,
@@ -39,6 +40,13 @@ router.post(
   upload.array("wallpaper", 16),
   handleMulterError,
   createWallpapers
+);
+router.post(
+  "/upload/single",
+  isAuth,
+  upload.single("file"),
+  handleMulterError,
+  uploadSingleWallpaper
 );
 router.get("/", isAuth, getWallpapers);
 router.get("/profile-wallpapers/:userId", isSetUser, getWallpapersByUserId);
