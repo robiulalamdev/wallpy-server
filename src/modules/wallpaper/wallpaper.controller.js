@@ -156,6 +156,100 @@ const getWallpapers = async (req, res) => {
   }
 };
 
+const getMyDraftWallpapers = async (req, res) => {
+  try {
+    const page = parseInt(req.query?.page) || 1;
+    const limit = parseInt(req.query?.limit) || 30;
+    const skip = (page - 1) * limit;
+    const userId = req.user?._id;
+
+    const isExistUser = await getUserInfoById(userId);
+    if (isExistUser) {
+      const query = {
+        user: userId,
+        status: WALLPAPER_ENUMS.STATUS[0],
+      };
+      const result = await Wallpaper.find(query)
+        .sort({ _id: -1 })
+        .skip(skip)
+        .limit(limit);
+      const total = await Wallpaper.countDocuments(query);
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Wallpapers Retrieve Successfully",
+        data: result,
+        meta: {
+          total: total,
+          page: page,
+          limit: limit,
+        },
+      });
+    } else {
+      res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User Not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
+const getMyPublishedWallpapers = async (req, res) => {
+  try {
+    const page = parseInt(req.query?.page) || 1;
+    const limit = parseInt(req.query?.limit) || 30;
+    const skip = (page - 1) * limit;
+    const userId = req.user?._id;
+
+    const isExistUser = await getUserInfoById(userId);
+    if (isExistUser) {
+      const query = {
+        user: userId,
+        status: WALLPAPER_ENUMS.STATUS[1],
+      };
+      const result = await Wallpaper.find(query)
+        .sort({ _id: -1 })
+        .skip(skip)
+        .limit(limit);
+      const total = await Wallpaper.countDocuments(query);
+      res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Wallpapers Retrieve Successfully",
+        data: result,
+        meta: {
+          total: total,
+          page: page,
+          limit: limit,
+        },
+      });
+    } else {
+      res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User Not Found!",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      success: false,
+      message: "Internal Server Error",
+      error_message: error.message,
+    });
+  }
+};
+
 const getWallpapersByUserId = async (req, res) => {
   try {
     const page = parseInt(req.query?.page) || 1;
@@ -1388,6 +1482,8 @@ module.exports = {
   createWallpapers,
   uploadSingleWallpaper,
   getWallpapers,
+  getMyDraftWallpapers,
+  getMyPublishedWallpapers,
   getWallpapersByUserId,
   deleteWallpapersByIds,
   updateWallpapers,
