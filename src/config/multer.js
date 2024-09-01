@@ -73,8 +73,6 @@ const storage = multer.diskStorage({
     const extName = path.extname(file.originalname);
     const uniqueSuffix = `wallpapersociety-` + Date.now() + extName;
     file["name"] = uniqueSuffix;
-    console.log("ext: ", extName);
-    console.log("fileName: ", uniqueSuffix);
     cb(null, uniqueSuffix + extName);
   },
 });

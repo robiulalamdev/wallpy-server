@@ -1,6 +1,6 @@
 # The Wallpaper Society
 
-# Version : 3.2.3
+# Version : 3.2.4
 
 ## Live Link:
 
