@@ -48,7 +48,7 @@ const storage = multer.diskStorage({
     if (isVideoFile(file)) {
       uploadDir = "public/videos";
     } else if (isImageFile(file)) {
-      uploadDir = "public/images";
+      uploadDir = "public/images/im";
     } else if (isPdfFile(file)) {
       uploadDir = "public/pdfs";
     } else if (isDocFile(file)) {
@@ -70,10 +70,11 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
-    file["name"] = `wallpapersociety-${file.originalname}`;
     const extName = path.extname(file.originalname);
-    const uniqueSuffix =
-      file.originalname.split(extName)[0]?.slice(0, 100) + "-" + Date.now();
+    const uniqueSuffix = `wallpapersociety-` + Date.now() + extName;
+    file["name"] = uniqueSuffix;
+    console.log("ext: ", extName);
+    console.log("fileName: ", uniqueSuffix);
     cb(null, uniqueSuffix + extName);
   },
 });
