@@ -793,11 +793,30 @@ const sendForgotPasswordMail = async (user, token) => {
 };
 
 const sendContactMessage = async (data) => {
-  const transporter = nodemailer.createTransport(transport);
+  const from = "noreply@thewallpapersociety.com";
+  const mail = "webmail.thewallpapersociety.com"; // Corrected
+  const password = "Wallpymaily17!";
+
+  const transporter = nodemailer.createTransport({
+    host: "webmail.thewallpapersociety.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: from,
+      pass: password,
+    },
+    timeout: 60000, // Increase timeout to 60 seconds
+
+    // service: "Gmail",
+    // auth: {
+    //   user: mail,
+    //   pass: password,
+    // },
+  });
 
   const mailOptions = {
-    from: process.env.MAIL_USER,
-    to: process.env.MAIL_USER,
+    from: from,
+    to: "robiulalamdx@gmail.com",
     subject: `New Contact Us Form Submission`,
     html: `
         <body style="background-color: #f4f4f4; margin: 0; padding: 0;">
@@ -844,6 +863,8 @@ const sendContactMessage = async (data) => {
 
   let status = true;
   transporter.sendMail(mailOptions, (error, info) => {
+    console.info("info: ", info);
+    console.error("error: ", error);
     if (info) {
       status = true;
     }
