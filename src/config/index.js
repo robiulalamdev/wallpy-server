@@ -20,6 +20,10 @@ const VARIABLES = {
   // Mail User
   MAIL_USER: process.env.MAIL_USER,
   MAIL_PASS: process.env.MAIL_PASS,
+
+  SENDRID_MAIL: process.env.SENDGRID_MAIL,
+  CONTACT_MAIL: process.env.CONTACT_MAIL,
+  SENDGRID_KEY: process.env.SENDGRID_KEY,
 };
 
 module.exports = VARIABLES;

@@ -1,8 +1,7 @@
 # The Wallpaper Society
 
-# Version : 3.2.4
+# Version : 4.0.0
 
 ## Live Link:
 
 - http://thewallpapersociety.com
-- http://wps.com
