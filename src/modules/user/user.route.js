@@ -24,6 +24,7 @@ const {
   getMediaArtistInfoByUsername,
   getUserInfoByProfileURL,
   getBrands,
+  getOfficialBrands,
 } = require("./user.controller");
 const { isAuth, isAuthenticated } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -101,6 +102,7 @@ router.post(
   getUserInfoByProfileURL
 );
 router.get("/official-brands", getBrands);
+router.get("/official-brands/all", getOfficialBrands);
 
 router.get("/test/action", testAction);
 
