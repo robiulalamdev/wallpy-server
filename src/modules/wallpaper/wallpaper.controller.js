@@ -404,8 +404,12 @@ const getWallpapersBySearch = async (req, res) => {
     }
 
     if (req.query.screen_type) {
+      let screenTypeValue = req.query?.screen_type;
+      if (req.query?.screen_type?.toLowerCase() === "mobile") {
+        screenTypeValue = "Phones";
+      }
       andQuery.push({
-        screen_type: { $regex: new RegExp(`^${req.query.screen_type}$`, "i") },
+        screen_type: { $regex: new RegExp(`^${screenTypeValue}$`, "i") },
       });
     }
 
