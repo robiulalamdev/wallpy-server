@@ -233,7 +233,10 @@ const modifyProfileInformation = async (req, res) => {
       if (socials) {
         profileData["socials"] = socials;
       }
-      profileData["bio"] = req.body.bio || "";
+      if (req.body.bio) {
+        profileData["bio"] = req.body.bio;
+      }
+
       await updateProfileBySetMethod(profileData, isExistUser?._id.toString());
       const result = await getUserInfoById(isExistUser?._id.toString());
       return res.status(200).json({

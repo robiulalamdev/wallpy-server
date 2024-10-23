@@ -25,6 +25,7 @@ const {
   getUserInfoByProfileURL,
   getBrands,
   getOfficialBrands,
+  updateUserAndProfileInformation,
 } = require("./user.controller");
 const { isAuth, isAuthenticated } = require("../../middlewares/auth");
 const { upload, handleMulterError } = require("../../config/multer");
@@ -103,6 +104,7 @@ router.post(
 );
 router.get("/official-brands", getBrands);
 router.get("/official-brands/all", getOfficialBrands);
+router.patch("/information/:id", updateUserAndProfileInformation);
 
 router.get("/test/action", testAction);
 

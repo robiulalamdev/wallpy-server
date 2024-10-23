@@ -1220,6 +1220,40 @@ const getOfficialBrands = async (req, res) => {
   }
 };
 
+const updateUserAndProfileInformation = async (req, res) => {
+  try {
+    const userBody = req.body?.user;
+    const profileBody = req.body?.profile;
+    const isExistUser = await getUserInfoById(req.params.id);
+    if (isExistUser) {
+      await updateUserWithSetMethod(userBody, isExistUser?._id.toString());
+      await updateProfileBySetMethod(profileBody, isExistUser?._id.toString());
+      const result = await getUserInfoById(isExistUser?._id.toString());
+      return res.status(200).json({
+        status: 200,
+        success: true,
+        message: "User info Update Successfully",
+        data: result,
+      });
+    } else {
+      return res.status(404).json({
+        status: 404,
+        success: false,
+        type: "email",
+        message: "User not Found!",
+        data: null,
+      });
+    }
+  } catch (error) {
+    res.status(201).json({
+      status: 201,
+      success: false,
+      message: "User Retrieve Failed!",
+      error_message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -1246,4 +1280,5 @@ module.exports = {
   getUserInfoByProfileURL,
   getBrands,
   getOfficialBrands,
+  updateUserAndProfileInformation,
 };

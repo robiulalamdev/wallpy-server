@@ -4,7 +4,7 @@ const sponsorSchema = new Schema(
   {
     type: {
       type: String,
-      enum: ["Main"],
+      enum: ["Main", "Official", "Trending"],
       required: true,
     },
     user: {

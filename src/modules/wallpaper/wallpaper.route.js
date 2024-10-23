@@ -17,7 +17,6 @@ const {
   sponsorsWallpapers,
   getWallpapersByTag,
   getFeaturedItems,
-  addFeaturedItems,
   getInfoBySlug,
   getTopThreeFavoritedWallpapers,
   getMostDownloadedWallpapers,
@@ -99,11 +98,6 @@ router.patch(
   "/media/update-tags/:id",
   isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
   updateWallpaperTag
-);
-router.post(
-  "/add-featured",
-  isAuthenticated([ROLE_DATA.ADMIN, ROLE_DATA.MOD]),
-  addFeaturedItems
 );
 router.post(
   "/media-info/:slug",
