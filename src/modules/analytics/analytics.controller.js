@@ -229,8 +229,10 @@ const getDashboardStats = async (req, res) => {
             clicks = [{ clicks: currentItem?.clickThrough?.length }];
           }
 
+          console.log(currentItem);
+
           const profile = await Profile.findOne({
-            user: currentItem?.user,
+            user: currentItem?.targetId,
           }).select("banner official_banner");
 
           return {

@@ -7,9 +7,13 @@ const sponsorSchema = new Schema(
       enum: ["Main", "Official", "Trending"],
       required: true,
     },
-    user: {
+    targetId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      required: true,
+    },
+    targetType: {
+      type: String,
+      enum: ["User", "Wallpaper"],
       required: true,
     },
     serialNo: {
