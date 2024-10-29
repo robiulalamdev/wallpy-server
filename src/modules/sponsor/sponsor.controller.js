@@ -31,22 +31,22 @@ const addSponsorForNewTrending = async (req, res) => {
       type: type,
       targetType: "Wallpaper",
     }).select("targetId");
-    const ids = sponsors.map((item) => item?.targetId);
-    if (ids?.length > 0) {
-      await Wallpaper.updateMany(
-        { _id: { $in: ids } },
-        { $set: { isFeatured: false } }
-      );
-    }
+    // const ids = sponsors.map((item) => item?.targetId);
+    // if (ids?.length > 0) {
+    //   await Wallpaper.updateMany(
+    //     { _id: { $in: ids } },
+    //     { $set: { isFeatured: false } }
+    //   );
+    // }
     await Sponsor.deleteMany({ type: type });
     const result = await Sponsor.insertMany(req.body?.items);
-    const newIds = req.body?.items.map((item) => item?.targetId);
-    if (newIds?.length > 0) {
-      await Wallpaper.updateMany(
-        { _id: { $in: newIds } },
-        { $set: { isFeatured: true } }
-      );
-    }
+    // const newIds = req.body?.items.map((item) => item?.targetId);
+    // if (newIds?.length > 0) {
+    //   await Wallpaper.updateMany(
+    //     { _id: { $in: newIds } },
+    //     { $set: { isFeatured: true } }
+    //   );
+    // }
 
     res.status(201).json({
       status: 201,

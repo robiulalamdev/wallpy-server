@@ -1,11 +1,16 @@
 const Favorite = require("../favorite/favorite.model");
 const Profile = require("../profile/profile.model");
 const Settings = require("../settings/settings.model");
+const Sponsor = require("../sponsor/sponsor.model");
 const User = require("../user/user.model");
 const { getUserInfoById } = require("../user/user.service");
 const { WALLPAPER_ENUMS } = require("./wallpaper.constant");
 const Wallpaper = require("./wallpaper.model");
-const { wallpapersMake, singleWallpaperMake } = require("./wallpaper.service");
+const {
+  wallpapersMake,
+  singleWallpaperMake,
+  getSingleSponsorWallpaper,
+} = require("./wallpaper.service");
 
 const createWallpapers = async (req, res) => {
   try {
@@ -453,6 +458,11 @@ const getWallpapersBySearch = async (req, res) => {
     page = parseInt(page);
     limit = parseInt(limit);
 
+    let sponsor = await getSingleSponsorWallpaper(page);
+    if (sponsor) {
+      limit--;
+    }
+
     if (tn?.toLowerCase() === "trending") {
       const favoritesCounts = await Favorite.aggregate([
         { $match: {} },
@@ -477,10 +487,17 @@ const getWallpapersBySearch = async (req, res) => {
       });
 
       const total = sortedWallpapers.length;
-      const paginatedResults = sortedWallpapers.slice(
+      let paginatedResults = sortedWallpapers.slice(
         (page - 1) * limit,
         page * limit
       );
+
+      if (sponsor) {
+        paginatedResults = [
+          { ...sponsor?.toObject(), isFeatured: true },
+          ...paginatedResults,
+        ];
+      }
 
       return res.status(200).json({
         status: 200,
@@ -500,10 +517,14 @@ const getWallpapersBySearch = async (req, res) => {
     }
 
     const total = await Wallpaper.countDocuments(query);
-    const results = await Wallpaper.find(query)
+    let results = await Wallpaper.find(query)
       .sort(sort)
       .skip((page - 1) * limit)
       .limit(limit);
+
+    if (sponsor) {
+      results = [{ ...sponsor?.toObject(), isFeatured: true }, ...results];
+    }
 
     res.status(200).json({
       status: 200,
@@ -1032,6 +1053,11 @@ const getSearchAndFilterWallpapers = async (req, res) => {
 
     // Sorting logic for tn and sort_by
 
+    let sponsor = await getSingleSponsorWallpaper(page);
+    if (sponsor) {
+      limit--;
+    }
+
     if (tn?.toLowerCase() === "trending") {
       const favoritesCounts = await Favorite.aggregate([
         { $match: {} },
@@ -1056,10 +1082,18 @@ const getSearchAndFilterWallpapers = async (req, res) => {
       });
 
       const total = sortedWallpapers.length;
-      const paginatedResults = sortedWallpapers.slice(
+      let paginatedResults = sortedWallpapers.slice(
         (page - 1) * limit,
         page * limit
       );
+
+      if (sponsor) {
+        paginatedResults = [
+          { ...sponsor?.toObject(), isFeatured: true },
+          ...paginatedResults,
+        ];
+        limit++;
+      }
 
       return res.status(200).json({
         status: 200,
@@ -1102,10 +1136,18 @@ const getSearchAndFilterWallpapers = async (req, res) => {
       });
 
       const total = sortedWallpapers.length;
-      const paginatedResults = sortedWallpapers.slice(
+      let paginatedResults = sortedWallpapers.slice(
         (page - 1) * limit,
         page * limit
       );
+
+      if (sponsor) {
+        paginatedResults = [
+          { ...sponsor?.toObject(), isFeatured: true },
+          ...paginatedResults,
+        ];
+        limit++;
+      }
 
       return res.status(200).json({
         status: 200,
@@ -1123,12 +1165,16 @@ const getSearchAndFilterWallpapers = async (req, res) => {
     }
 
     const total = await Wallpaper.countDocuments(query);
-    const results = await Wallpaper.find(query)
+    let results = await Wallpaper.find(query)
       .sort(sort)
       .skip((page - 1) * limit)
       .limit(limit);
 
-    console.log(results);
+    if (sponsor) {
+      results = [{ ...sponsor?.toObject(), isFeatured: true }, ...results];
+      limit++;
+    }
+
     res.status(200).json({
       status: 200,
       success: true,

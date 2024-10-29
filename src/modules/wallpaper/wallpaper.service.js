@@ -2,6 +2,7 @@ const path = require("path");
 const sharp = require("sharp");
 const Wallpaper = require("./wallpaper.model");
 const shortid = require("shortid");
+const Sponsor = require("../sponsor/sponsor.model");
 
 const getImageMetadata = async (filePath) => {
   try {
@@ -73,7 +74,40 @@ const singleWallpaperMake = async (file, userId) => {
   }
 };
 
+const getSingleSponsorWallpaper = async (page) => {
+  try {
+    let sponsor = null;
+
+    if (page === 1) {
+      const sponsorItems = await Sponsor.aggregate([
+        {
+          $match: {
+            type: "Trending",
+            targetType: "Wallpaper",
+          },
+        },
+        { $sample: { size: 1 } },
+      ]);
+
+      if (sponsorItems?.length > 0) {
+        let populatedItem = await Wallpaper.findById({
+          _id: sponsorItems[0]?.targetId,
+        });
+
+        if (populatedItem) {
+          sponsor = populatedItem;
+        }
+      }
+    }
+
+    return sponsor;
+  } catch (error) {
+    return null;
+  }
+};
+
 module.exports = {
   wallpapersMake,
   singleWallpaperMake,
+  getSingleSponsorWallpaper,
 };
