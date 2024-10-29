@@ -262,6 +262,11 @@ const getBrandsFeatured = async (req, res) => {
               username: currentItem?.targetId?.username,
               slug: currentItem?.targetId?.slug,
               name: currentItem?.targetId?.name,
+              brandName:
+                currentItem?.targetId?.role === ROLE_DATA.BRAND &&
+                currentItem?.targetId?.verification_status === true
+                  ? currentItem?.targetId?.name
+                  : currentItem?.targetId?.username,
               role: currentItem?.targetId?.role,
               banner:
                 currentItem?.targetId?.role === ROLE_DATA.BRAND &&

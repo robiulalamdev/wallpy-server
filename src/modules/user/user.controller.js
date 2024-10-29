@@ -1050,11 +1050,12 @@ const getUserInfoByProfileURL = async (req, res) => {
   try {
     const isExistUser = await User.findOne({
       slug: req.params.slug,
-    }).select("username slug role verification_status");
+    }).select("username name slug role verification_status");
     if (isExistUser) {
       const profile = await Profile.findOne({
         user: isExistUser?._id.toString(),
       }).select("banner official_banner");
+
       res.status(200).json({
         status: 200,
         success: true,
@@ -1062,6 +1063,11 @@ const getUserInfoByProfileURL = async (req, res) => {
         data: {
           _id: isExistUser?._id,
           username: isExistUser?.username,
+          brandName:
+            isExistUser?.role === ROLE_DATA.BRAND &&
+            isExistUser?.verification_status === true
+              ? isExistUser?.name
+              : isExistUser?.username,
           slug: isExistUser?.slug,
           banner:
             isExistUser?.role === ROLE_DATA.BRAND &&
