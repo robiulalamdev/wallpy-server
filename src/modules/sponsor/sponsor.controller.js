@@ -177,12 +177,15 @@ const getOfficialSponsorData = async (req, res) => {
       items.map(async (currentItem) => {
         const populatedItem = await Wallpaper.findById({
           _id: currentItem?.targetId,
-        }).select("wallpaper slug");
+        })
+          .select("wallpaper slug")
+          .populate("user", "slug");
         return {
           ...currentItem,
           wallpaper: populatedItem?.wallpaper,
           slug: populatedItem?.slug,
           targetId: populatedItem?._id,
+          authorSlug: populatedItem?.user?.slug,
         };
       })
     );

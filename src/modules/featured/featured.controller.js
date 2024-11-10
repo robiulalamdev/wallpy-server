@@ -257,16 +257,17 @@ const getBrandsFeatured = async (req, res) => {
               user: currentItem?.targetId?._id,
             }).select("official_banner banner");
 
+            const brandName =
+              currentItem?.targetId?.role === ROLE_DATA.BRAND &&
+              currentItem?.targetId?.verification_status === true
+                ? currentItem?.targetId?.name
+                : currentItem?.targetId?.username;
             return {
               ...currentItem.toObject(),
               username: currentItem?.targetId?.username,
               slug: currentItem?.targetId?.slug,
               name: currentItem?.targetId?.name,
-              brandName:
-                currentItem?.targetId?.role === ROLE_DATA.BRAND &&
-                currentItem?.targetId?.verification_status === true
-                  ? currentItem?.targetId?.name
-                  : currentItem?.targetId?.username,
+              title: currentItem?.title || brandName,
               role: currentItem?.targetId?.role,
               banner:
                 currentItem?.targetId?.role === ROLE_DATA.BRAND &&
@@ -310,11 +311,17 @@ const getBrandsFeaturedData = async (req, res) => {
           user: currentItem?.targetId,
         }).select("official_banner banner");
 
+        const brandName =
+          user?.role === ROLE_DATA.BRAND && user?.verification_status === true
+            ? user?.name
+            : user?.username;
+
         return {
           ...currentItem,
           username: user?.username,
           slug: user?.slug,
           name: user?.name,
+          title: currentItem?.title || brandName,
           role: user?.role,
           banner:
             user?.role === ROLE_DATA.BRAND && user?.verification_status === true

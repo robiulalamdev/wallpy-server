@@ -16,6 +16,10 @@ const featuredSchema = new Schema(
       enum: ["User", "Wallpaper"],
       required: true,
     },
+    title: {
+      type: String,
+      required: false,
+    },
     serialNo: {
       type: Number,
       required: false,
