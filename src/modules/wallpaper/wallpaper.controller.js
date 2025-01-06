@@ -652,46 +652,44 @@ const deleteWallpapersByIds = async (req, res) => {
 
 const getPopularWallpapers = async (req, res) => {
   try {
-    const popularWallpapers = await Favorite.aggregate([
+    const { type = "", limit = "3" } = req.query;
+    const limitNumber = parseInt(limit, 10);
+
+    let queryPipeline = [
       {
-        $group: {
-          _id: "$wallpaper",
-          count: { $sum: 1 },
+        $match: {
+          $and: [{ status: WALLPAPER_ENUMS.STATUS[1] }],
         },
       },
-      {
-        $sort: { count: -1 },
-      },
-      {
-        $limit: parseInt(req.query?.limit) || 20,
-      },
-    ]);
+      { $sample: { size: limitNumber } },
+    ];
 
-    const ids = popularWallpapers.map((entry) => entry._id);
-    const query = {
-      _id: { $in: ids },
-      status: WALLPAPER_ENUMS.STATUS[1],
-    };
+    if (type) {
+      queryPipeline[0].$match.$and.push({ type: type });
+    }
 
     if (req.user?._id) {
       const settings = await Settings.findOne({ user: req.user?._id }).select(
         "nsfw blacklist_tags"
       );
       if (settings?.nsfw === false) {
-        query["classification"] = { $ne: "NSFW" };
+        queryPipeline[0].$match.$and.push({ classification: { $ne: "NSFW" } });
       }
       if (settings?.blacklist_tags?.length > 0) {
-        query["tags"] = {
-          $not: {
-            $elemMatch: { $in: settings?.blacklist_tags },
+        queryPipeline[0].$match.$and.push({
+          tags: {
+            $not: {
+              $elemMatch: { $in: settings?.blacklist_tags },
+            },
           },
-        };
+        });
       }
     } else {
-      query["classification"] = { $ne: "NSFW" };
+      queryPipeline[0].$match.$and.push({ classification: { $ne: "NSFW" } });
     }
 
-    const result = await Wallpaper.find(query);
+    const result = await Wallpaper.aggregate(queryPipeline);
+
     res.status(200).json({
       status: 200,
       success: false,
