@@ -121,15 +121,21 @@ const isAdmin = async (req, res, next) => {
 const isSetUser = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   try {
-    const token = authHeader.split(" ")[1];
-    if (token) {
-      jwt.verify(token, VARIABLES.ACCESS_TOKEN_SECRET, function (err, decoded) {
-        if (decoded?._id) {
-          req.user = decoded;
-        } else {
-          req.user = null;
-        }
-      });
+    if (authHeader) {
+      const token = authHeader.split(" ")[1];
+      if (token) {
+        jwt.verify(
+          token,
+          VARIABLES.ACCESS_TOKEN_SECRET,
+          function (err, decoded) {
+            if (decoded?._id) {
+              req.user = decoded;
+            } else {
+              req.user = null;
+            }
+          }
+        );
+      }
     }
     next();
   } catch (err) {

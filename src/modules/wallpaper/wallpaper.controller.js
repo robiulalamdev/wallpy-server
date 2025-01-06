@@ -652,7 +652,7 @@ const deleteWallpapersByIds = async (req, res) => {
 
 const getPopularWallpapers = async (req, res) => {
   try {
-    const { type = "", limit = "3" } = req.query;
+    const { type = "", wallpaperId = "", limit = "3" } = req.query;
     const limitNumber = parseInt(limit, 10);
 
     let queryPipeline = [
@@ -666,6 +666,10 @@ const getPopularWallpapers = async (req, res) => {
 
     if (type) {
       queryPipeline[0].$match.$and.push({ type: type });
+    }
+
+    if (wallpaperId) {
+      queryPipeline[0].$match.$and.push({ _id: { $ne: wallpaperId } });
     }
 
     if (req.user?._id) {
