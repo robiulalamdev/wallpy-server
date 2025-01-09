@@ -131,19 +131,9 @@ const getDashboardStats = async (req, res) => {
                 input: "$downloads",
                 as: "download",
                 cond: {
-                  $or: [
-                    {
-                      $and: [
-                        { $ifNull: [startDate, true] },
-                        { $ifNull: [endDate, true] },
-                      ],
-                    },
-                    {
-                      $and: [
-                        { $gte: ["$$download", startDate] },
-                        { $lt: ["$$download", endDate] },
-                      ],
-                    },
+                  $and: [
+                    { $gte: ["$$download", startDate] },
+                    { $lt: ["$$download", endDate] },
                   ],
                 },
               },
@@ -155,7 +145,12 @@ const getDashboardStats = async (req, res) => {
             downloadsCount: { $size: "$downloads" },
           },
         },
-        { $group: { _id: null, totalDownloads: { $sum: "$downloadsCount" } } },
+        {
+          $group: {
+            _id: null,
+            totalDownloads: { $sum: "$downloadsCount" },
+          },
+        },
       ]),
 
       Wallpaper.countDocuments({
@@ -228,8 +223,6 @@ const getDashboardStats = async (req, res) => {
           } else {
             clicks = [{ clicks: currentItem?.clickThrough?.length }];
           }
-
-          console.log(currentItem);
 
           const profile = await Profile.findOne({
             user: currentItem?.targetId,
