@@ -22,7 +22,7 @@ const socialSchema = new Schema(
       type: String,
       required: false,
     },
-    deviantart: {
+    threads: {
       type: String,
       required: false,
     },
@@ -101,7 +101,7 @@ const userProfileSchema = new Schema(
         dribbble: "",
         instagram: "",
         discord: "",
-        deviantart: "",
+        threads: "",
         reddit: "",
         twitch: "",
       },
