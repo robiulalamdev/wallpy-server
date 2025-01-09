@@ -5,7 +5,6 @@ const {
   handleTrackingVisitor,
 } = require("./analytics.controller");
 const { ROLE_DATA } = require("../user/user.constants");
-const { trackingVisitor } = require("./analytics.service");
 const { getLocation } = require("../../helpers/services");
 const router = express.Router();
 

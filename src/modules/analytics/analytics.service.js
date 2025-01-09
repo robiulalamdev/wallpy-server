@@ -17,15 +17,22 @@ const trackingVisitor = async (visitorIp) => {
 
   try {
     if (visitorIp) {
-      await Analytics.updateOne(
-        {
-          createdAt: { $gte: startDate, $lt: endDate },
-        },
-        {
-          $addToSet: { visitors: visitorIp },
-        },
-        { upsert: true }
-      );
+      const analyticsDoc = await Analytics.findOne({
+        createdAt: { $gte: startDate, $lt: endDate },
+        visitors: visitorIp,
+      });
+
+      if (!analyticsDoc) {
+        await Analytics.updateOne(
+          {
+            createdAt: { $gte: startDate, $lt: endDate },
+          },
+          {
+            $push: { visitors: visitorIp },
+          },
+          { upsert: true }
+        );
+      }
       return true;
     } else {
       return false;

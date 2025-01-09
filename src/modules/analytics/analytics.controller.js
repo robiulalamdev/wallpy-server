@@ -12,7 +12,13 @@ const Profile = require("../profile/profile.model");
 
 const handleTrackingVisitor = async (req, res) => {
   try {
-    const result = await trackingVisitor(req.ip);
+    const ip =
+      req.headers["cf-connecting-ip"] ||
+      req.headers["x-real-ip"] ||
+      req.headers["x-forwarded-for"] ||
+      req.socket.remoteAddress ||
+      "";
+    const result = await trackingVisitor(ip);
     if (result) {
       res.status(200).json({
         status: 200,
@@ -161,22 +167,30 @@ const getDashboardStats = async (req, res) => {
       }),
 
       User.countDocuments({
-        ...(startDate && endDate
-          ? { createdAt: { $gte: startDate, $lte: endDate } }
-          : {}),
+        createdAt:
+          startDate && endDate
+            ? { $gte: startDate, $lt: endDate }
+            : { $exists: true },
       }),
 
       Analytics.aggregate([
         {
           $match: {
-            ...(startDate && endDate
-              ? { createdAt: { $gte: startDate, $lt: endDate } }
-              : {}),
+            createdAt:
+              startDate && endDate
+                ? { $gte: startDate, $lt: endDate }
+                : { $exists: true },
           },
         },
         {
           $project: {
-            visitorsCount: { $size: "$visitors" },
+            totalVisitors: { $size: "$visitors" },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            visitorsCount: { $sum: "$totalVisitors" },
           },
         },
       ]),
