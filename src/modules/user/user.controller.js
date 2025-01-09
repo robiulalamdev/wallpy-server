@@ -8,7 +8,6 @@ const {
   sendVerifyEmail,
   sendForgotPasswordMail,
 } = require("../../helpers/sendEmailHelper");
-const { getLocation } = require("../../helpers/services");
 const Profile = require("../profile/profile.model");
 const { updateProfileBySetMethod } = require("../profile/profile.service");
 const Settings = require("../settings/settings.model");
@@ -35,6 +34,13 @@ const bcrcypt = require("bcryptjs");
 
 const createUser = async (req, res) => {
   try {
+    const ip =
+      req.headers["cf-connecting-ip"] ||
+      req.headers["x-real-ip"] ||
+      req.headers["x-forwarded-for"] ||
+      req.socket.remoteAddress ||
+      "";
+
     const isExistUser = await getUser(req.body.email);
     if (isExistUser) {
       if (isExistUser?.verified) {
@@ -69,7 +75,7 @@ const createUser = async (req, res) => {
           message: "Username already in use",
         });
       } else {
-        const createResult = await createNewUser(req.body, req.clientIp);
+        const createResult = await createNewUser(req.body, ip || req.clientIp);
         const token = await generateVerifyToken({
           email: createResult?.email,
           username: createResult?.username,
