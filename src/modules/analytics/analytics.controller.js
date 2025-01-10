@@ -126,35 +126,38 @@ const getDashboardStats = async (req, res) => {
         {
           $project: {
             downloads: {
-              $ifNull: ["$downloads", []],
+              $ifNull: ["$downloads", []], // Ensure downloads is always an array
             },
           },
         },
         {
           $project: {
-            downloads: {
-              $filter: {
-                input: "$downloads",
-                as: "download",
-                cond: {
-                  $and: [
-                    { $gte: ["$$download", startDate] },
-                    { $lt: ["$$download", endDate] },
-                  ],
-                },
-              },
-            },
+            downloads:
+              startDate && endDate
+                ? {
+                    $filter: {
+                      input: "$downloads",
+                      as: "download",
+                      cond: {
+                        $and: [
+                          { $gte: ["$$download", startDate] },
+                          { $lt: ["$$download", endDate] },
+                        ],
+                      },
+                    },
+                  }
+                : "$downloads", // If no dates, just pass the original array
           },
         },
         {
           $project: {
-            downloadsCount: { $size: "$downloads" },
+            downloadsCount: { $size: "$downloads" }, // Count the number of downloads
           },
         },
         {
           $group: {
             _id: null,
-            totalDownloads: { $sum: "$downloadsCount" },
+            totalDownloads: { $sum: "$downloadsCount" }, // Sum the counts
           },
         },
       ]),
