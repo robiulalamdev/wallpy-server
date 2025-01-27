@@ -1116,44 +1116,8 @@ const getSearchAndFilterWallpapers = async (req, res) => {
     }
 
     if (tn?.toLowerCase() === "trending") {
-      let wallpapers = await Wallpaper.aggregate([
-        {
-          $match: query,
-        },
-        {
-          $addFields: {
-            latestDownload: {
-              $cond: {
-                if: { $gt: [{ $size: { $ifNull: ["$downloads", []] } }, 0] },
-                then: { $max: "$downloads" },
-                else: 0, // Default value for documents with no downloads
-              },
-            },
-            downloadCount: {
-              $cond: {
-                if: { $gt: [{ $size: { $ifNull: ["$downloads", []] } }, 0] },
-                then: { $size: "$downloads" },
-                else: 0, // If downloads are empty or missing, set downloadCount to 0
-              },
-            },
-          },
-        },
-        {
-          $sort: {
-            view: -1,
-            downloadCount: -1,
-            latestDownload: -1,
-            ...sort,
-          },
-        },
-        {
-          $skip: (page - 1) * limit,
-        },
-        {
-          $limit: limit,
-        },
-      ]);
-      const total = wallpapers.length;
+      let wallpapers = await Wallpaper.find(query).sort({ view: -1 });
+      const total = await Wallpaper.countDocuments(query);
 
       if (sponsor) {
         wallpapers = [
@@ -1176,30 +1140,38 @@ const getSearchAndFilterWallpapers = async (req, res) => {
         },
       });
     } else if (tn?.toLowerCase() === "top wallpapers") {
-      let wallpapers = await Wallpaper.aggregate([
-        {
-          $match: query,
-        },
-        {
-          $sort: {
-            view: -1,
-            ...sort,
-          },
-        },
-        {
-          $skip: (page - 1) * limit,
-        },
-        {
-          $limit: limit,
-        },
+      const favoritesCounts = await Favorite.aggregate([
+        { $match: {} },
+        { $group: { _id: "$wallpaper", count: { $sum: 1 } } },
       ]);
 
-      const total = wallpapers.length;
+      const wallpaperFavoritesMap = favoritesCounts.reduce((acc, favorite) => {
+        acc[favorite._id] = favorite.count;
+        return acc;
+      }, {});
+
+      const wallpapers = await Wallpaper.find(query);
+
+      const sortedWallpapers = wallpapers.sort((a, b) => {
+        const aFavorites = wallpaperFavoritesMap[a._id] || 0;
+        const bFavorites = wallpaperFavoritesMap[b._id] || 0;
+        const aScore = a.view + aFavorites;
+        const bScore = b.view + bFavorites;
+        return sortOrder.toLowerCase() === "asc"
+          ? aScore - bScore
+          : bScore - aScore;
+      });
+
+      const total = sortedWallpapers.length;
+      let paginatedResults = sortedWallpapers.slice(
+        (page - 1) * limit,
+        page * limit
+      );
 
       if (sponsor) {
-        wallpapers = [
+        paginatedResults = [
           { ...sponsor?.toObject(), isFeatured: true },
-          ...wallpapers,
+          ...paginatedResults,
         ];
       }
 
@@ -1208,7 +1180,7 @@ const getSearchAndFilterWallpapers = async (req, res) => {
         success: true,
         message: "Wallpapers Retrieved Successfully",
         data: {
-          data: wallpapers,
+          data: paginatedResults,
           meta: {
             page,
             limit,
