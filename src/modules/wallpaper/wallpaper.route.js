@@ -53,7 +53,8 @@ router.get("/", isAuth, getWallpapers);
 router.get("/my-draft", isAuth, getMyDraftWallpapers);
 router.get("/my-published", isAuth, getMyPublishedWallpapers);
 router.get("/profile-wallpapers/:userId", isSetUser, getWallpapersByUserId);
-router.get("/public", isSetUser, getWallpapersBySearch);
+// router.get("/public", isSetUser, getWallpapersBySearch); //* this is old
+router.get("/public", isSetUser, getSearchAndFilterWallpapers);
 router.get("/search-all", isSetUser, getSearchAndFilterWallpapers);
 router.get("/slug/:slug", isSetUser, getWallpaperBySlug);
 router.patch("/updates", isAuth, updateWallpapers);

@@ -951,43 +951,76 @@ const addNewDownloadCountByWallId = async (req, res) => {
 };
 
 // get search wallpapers with filter and pagination
-
 const getSearchAndFilterWallpapers = async (req, res) => {
   try {
-    let query = { status: WALLPAPER_ENUMS.STATUS[1] };
-
-    const tag = req.query.tag;
-    const name = req.query.name || "";
+    let {
+      tag = "",
+      name = "",
+      search = "",
+      type = "",
+      screen_type = "",
+      classification = "",
+      width = "",
+      height = "",
+      date = "",
+      page = 1,
+      limit = 60,
+      sort_by = "",
+      sortOrder = "desc",
+      tn = "trending",
+    } = req.query;
 
     // Text search
-    if (req.query.search) {
-      const searchRegex = new RegExp(req.query.search, "i");
-      query.$or = [
+    const pipeline = [
+      {
+        $match: {
+          $and: [
+            {
+              status: WALLPAPER_ENUMS.STATUS[1],
+            },
+          ],
+        },
+      },
+    ];
+
+    const orPipeline = [];
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+      orPipeline.push(
         { author: { $regex: searchRegex } },
         { source: { $regex: searchRegex } },
         { wallpaper: { $regex: searchRegex } },
         { screen_type: { $regex: searchRegex } },
         { type: { $regex: searchRegex } },
-        { tags: { $elemMatch: { $regex: searchRegex } } },
-      ];
+        { tags: { $elemMatch: { $regex: searchRegex } } }
+      );
     }
 
-    // Filters
-    const andQuery = [];
-    if (req.query.type && req.query.type.toLowerCase() !== "all") {
-      andQuery.push({
-        type: { $regex: new RegExp(`^${req.query.type}$`, "i") },
+    if (screen_type) {
+      let screenTypeValue = screen_type;
+      if (screen_type?.toLowerCase() === "mobile") {
+        screenTypeValue = "Phones";
+      }
+      pipeline[0].$match.$and.push({
+        screen_type: { $regex: new RegExp(`^${screenTypeValue}$`, "i") },
       });
     }
 
-    if (req.query.screen_type) {
-      andQuery.push({
-        screen_type: { $regex: new RegExp(`^${req.query.screen_type}$`, "i") },
+    if (type && type.toLowerCase() !== "all") {
+      pipeline[0].$match.$and.push({
+        type: { $regex: new RegExp(`^${type}$`, "i") },
       });
     }
 
-    if (req.query.tag) {
-      andQuery.push({
+    if (screen_type) {
+      pipeline[0].$match.$and.push({
+        screen_type: { $regex: new RegExp(`^${screen_type}$`, "i") },
+      });
+    }
+
+    if (tag) {
+      pipeline[0].$match.$and.push({
         tags: {
           $elemMatch: { $eq: tag },
         },
@@ -997,7 +1030,7 @@ const getSearchAndFilterWallpapers = async (req, res) => {
     if (name) {
       const brandUser = await User.findOne({ username: name }).select("_id");
       if (brandUser) {
-        andQuery.push({
+        pipeline[0].$match.$and.push({
           user: brandUser?._id.toString(),
         });
       }
@@ -1010,12 +1043,12 @@ const getSearchAndFilterWallpapers = async (req, res) => {
         "nsfw blacklist_tags"
       );
       if (settings?.nsfw === false) {
-        andQuery.push({
+        pipeline[0].$match.$and.push({
           classification: { $ne: "NSFW" },
         });
       }
       if (settings?.blacklist_tags?.length > 0) {
-        andQuery.push({
+        pipeline[0].$match.$and.push({
           tags: {
             $not: {
               $elemMatch: { $in: settings?.blacklist_tags },
@@ -1025,32 +1058,37 @@ const getSearchAndFilterWallpapers = async (req, res) => {
       }
     }
 
-    const classification = req.query.classification || "SFW";
-
-    if (classification === "NSFW" && settings?.nsfw === true) {
-      andQuery.push({
+    if (classification.toLowerCase() === "nsfw" && settings?.nsfw === true) {
+      pipeline[0].$match.$and.push({
         classification: "NSFW",
       });
     } else {
-      andQuery.push({
-        classification: {
-          $regex: new RegExp(`^${classification}$`, "i"),
-        },
-      });
+      let classificationName = "";
+      // "SFW", "Risky"
+      if (classification.toLowerCase() === "sfw") {
+        classificationName = "SFW";
+      } else if (classification.toLowerCase() === "risky") {
+        classificationName = "Risky";
+      }
+      if (classificationName) {
+        pipeline[0].$match.$and.push({
+          classification: classificationName,
+        });
+      }
     }
-    if (req.query.width) {
-      andQuery.push({ "dimensions.width": parseInt(req.query.width) });
+    if (width) {
+      pipeline[0].$match.$and.push({ "dimensions.width": parseInt(width) });
     }
-    if (req.query.height) {
-      andQuery.push({ "dimensions.height": parseInt(req.query.height) });
+    if (height) {
+      pipeline[0].$match.$and.push({ "dimensions.height": parseInt(height) });
     }
 
-    // Date filters
+    // Date="" filters
     const currentDate = new Date();
     let startDate;
 
-    if (req.query.date) {
-      switch (req.query.date.toLowerCase()) {
+    if (date) {
+      switch (date.toLowerCase()) {
         case "today":
           startDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000); // Last 24 hours
           endDate = currentDate; // Current date/time
@@ -1084,31 +1122,16 @@ const getSearchAndFilterWallpapers = async (req, res) => {
           endDate = currentDate; // Current date/time
       }
 
-      andQuery.push({ createdAt: { $gte: startDate, $lte: endDate } });
+      pipeline[0].$match.$and.push({
+        createdAt: { $gte: startDate, $lte: endDate },
+      });
     }
-
-    if (Object.entries(andQuery).length > 0) {
-      query.$and = andQuery;
-    }
-
-    // Pagination
-    let {
-      page = 1,
-      limit = 60,
-      sort_by = "",
-      sortOrder = "desc",
-      tn = "trending",
-    } = req.query;
 
     page = parseInt(page);
     limit = parseInt(limit);
 
     let sort = {};
-    if (sort_by) {
-      sort[sort_by] = sortOrder === "asc" ? 1 : -1;
-    }
-
-    // Sorting logic for tn and sort_by
+    let sort_order = sortOrder === "asc" ? 1 : -1;
 
     let sponsor = await getSingleSponsorWallpaper(page);
     if (sponsor) {
@@ -1116,142 +1139,91 @@ const getSearchAndFilterWallpapers = async (req, res) => {
     }
 
     if (tn?.toLowerCase() === "trending") {
-      let wallpapers = await Wallpaper.find(query).sort({ view: -1 });
-      const total = await Wallpaper.countDocuments(query);
-
-      if (sponsor) {
-        wallpapers = [
-          { ...sponsor?.toObject(), isFeatured: true },
-          ...wallpapers,
-        ];
+      if (sort_by.toLowerCase() !== "views") {
+        sort["view"] = -1;
       }
-
-      return res.status(200).json({
-        status: 200,
-        success: true,
-        message: "Wallpapers Retrieved Successfully",
-        data: {
-          data: wallpapers,
-          meta: {
-            page,
-            limit,
-            total,
-          },
-        },
-      });
     } else if (tn?.toLowerCase() === "top wallpapers") {
-      const favoritesCounts = await Favorite.aggregate([
-        { $match: {} },
-        { $group: { _id: "$wallpaper", count: { $sum: 1 } } },
-      ]);
-
-      const wallpaperFavoritesMap = favoritesCounts.reduce((acc, favorite) => {
-        acc[favorite._id] = favorite.count;
-        return acc;
-      }, {});
-
-      const wallpapers = await Wallpaper.find(query);
-
-      const sortedWallpapers = wallpapers.sort((a, b) => {
-        const aFavorites = wallpaperFavoritesMap[a._id] || 0;
-        const bFavorites = wallpaperFavoritesMap[b._id] || 0;
-        const aScore = a.view + aFavorites;
-        const bScore = b.view + bFavorites;
-        return sortOrder.toLowerCase() === "asc"
-          ? aScore - bScore
-          : bScore - aScore;
-      });
-
-      const total = sortedWallpapers.length;
-      let paginatedResults = sortedWallpapers.slice(
-        (page - 1) * limit,
-        page * limit
-      );
-
-      if (sponsor) {
-        paginatedResults = [
-          { ...sponsor?.toObject(), isFeatured: true },
-          ...paginatedResults,
-        ];
-      }
-
-      return res.status(200).json({
-        status: 200,
-        success: true,
-        message: "Wallpapers Retrieved Successfully",
-        data: {
-          data: paginatedResults,
-          meta: {
-            page,
-            limit,
-            total,
+      const topWallPipeline = [
+        {
+          $lookup: {
+            from: "favorites",
+            localField: "_id",
+            foreignField: "wallpaper",
+            as: "favorites",
           },
         },
-      });
+        {
+          $addFields: {
+            totalFavorites: { $size: "$favorites" },
+          },
+        },
+        {
+          $unset: "favorites",
+        },
+      ];
+
+      sort["totalFavorites"] = -1;
+      sort["view"] = -1;
+
+      pipeline.push(...topWallPipeline);
     } else if (tn?.toLowerCase() === "new") {
-      sort["createdAt"] = -1; // Newest first
+      sort["createdAt"] = -1;
     }
 
-    if (sort_by?.toLowerCase() === "views") {
-      sort["view"] = sortOrder.toLowerCase() === "asc" ? 1 : -1;
+    // sort_by -> Random, Views, Favorites
+    if (sort_by && sort_by.toLowerCase() === "views") {
+      sort["view"] = sort_order;
     } else if (sort_by?.toLowerCase() === "favorites") {
-      const favoritesCounts = await Favorite.aggregate([
-        { $match: {} },
-        { $group: { _id: "$wallpaper", count: { $sum: 1 } } },
-      ]);
-
-      const wallpaperFavoritesMap = favoritesCounts.reduce((acc, favorite) => {
-        acc[favorite._id] = favorite.count;
-        return acc;
-      }, {});
-
-      const wallpapers = await Wallpaper.find(query);
-
-      const sortedWallpapers = wallpapers.sort((a, b) => {
-        const aFavorites = wallpaperFavoritesMap[a._id] || 0;
-        const bFavorites = wallpaperFavoritesMap[b._id] || 0;
-        return sortOrder.toLowerCase() === "asc"
-          ? aFavorites - bFavorites
-          : bFavorites - aFavorites;
-      });
-
-      const total = sortedWallpapers.length;
-      let paginatedResults = sortedWallpapers.slice(
-        (page - 1) * limit,
-        page * limit
-      );
-
-      if (sponsor) {
-        paginatedResults = [
-          { ...sponsor?.toObject(), isFeatured: true },
-          ...paginatedResults,
-        ];
-        limit++;
-      }
-
-      return res.status(200).json({
-        status: 200,
-        success: true,
-        message: "Wallpapers Retrieved Successfully",
-        data: {
-          data: paginatedResults,
-          meta: {
-            page,
-            limit,
-            total,
+      if (tn?.toLowerCase() !== "top wallpapers") {
+        const sortByFavoritePipeline = [
+          {
+            $lookup: {
+              from: "favorites",
+              localField: "_id",
+              foreignField: "wallpaper",
+              as: "favorites",
+            },
           },
-        },
+          {
+            $addFields: {
+              totalFavorites: { $size: "$favorites" },
+            },
+          },
+          {
+            $unset: "favorites",
+          },
+        ];
+        pipeline.push(...sortByFavoritePipeline);
+        sort["totalFavorites"] = sort_order;
+      } else {
+        sort["totalFavorites"] = sort_order;
+      }
+    }
+
+    if (orPipeline.length > 0) {
+      pipeline[0].$match.$and.push({
+        $or: orPipeline,
       });
     }
 
-    const total = await Wallpaper.countDocuments(query);
-    let results = await Wallpaper.find(query)
-      .sort(sort)
-      .skip((page - 1) * limit)
-      .limit(limit);
+    const totalPipeline = [...pipeline, { $count: "total" }];
+
+    // Fetch total count
+    const totalResult = await Wallpaper.aggregate(totalPipeline);
+    const total = totalResult.length > 0 ? totalResult[0].total : 0;
+
+    pipeline.push(
+      { $sort: sort },
+      { $skip: (page - 1) * limit },
+      { $limit: limit }
+    );
+
+    // console.log("Match: ", pipeline[0].$match, "Sort: ", sort);
+
+    let results = await Wallpaper.aggregate(pipeline);
 
     if (sponsor) {
-      results = [{ ...sponsor?.toObject(), isFeatured: true }, ...results];
+      results.unshift({ ...sponsor?.toObject(), isFeatured: true });
       limit++;
     }
 
