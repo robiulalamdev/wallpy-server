@@ -2,6 +2,9 @@ const Favorite = require("../favorite/favorite.model");
 const Profile = require("../profile/profile.model");
 const Settings = require("../settings/settings.model");
 const Sponsor = require("../sponsor/sponsor.model");
+const {
+  getLatestTrendingWallpaperIds,
+} = require("../trending/trending.service");
 const User = require("../user/user.model");
 const { getUserInfoById } = require("../user/user.service");
 const { WALLPAPER_ENUMS } = require("./wallpaper.constant");
@@ -998,24 +1001,27 @@ const getSearchAndFilterWallpapers = async (req, res) => {
     }
 
     if (screen_type) {
-      let screenTypeValue = screen_type;
-      if (screen_type?.toLowerCase() === "mobile") {
+      let screenTypeValue = "";
+      if (
+        screen_type?.toLowerCase() === "mobile" ||
+        screen_type?.toLowerCase() === "phones" ||
+        screen_type?.toLowerCase() === "phone"
+      ) {
         screenTypeValue = "Phones";
+      } else if (screen_type?.toLowerCase() === "desktop") {
+        screenTypeValue = "Desktop";
       }
-      pipeline[0].$match.$and.push({
-        screen_type: { $regex: new RegExp(`^${screenTypeValue}$`, "i") },
-      });
+
+      if (screenTypeValue) {
+        pipeline[0].$match.$and.push({
+          screen_type: { $regex: new RegExp(`^${screenTypeValue}$`, "i") },
+        });
+      }
     }
 
     if (type && type.toLowerCase() !== "all") {
       pipeline[0].$match.$and.push({
         type: { $regex: new RegExp(`^${type}$`, "i") },
-      });
-    }
-
-    if (screen_type) {
-      pipeline[0].$match.$and.push({
-        screen_type: { $regex: new RegExp(`^${screen_type}$`, "i") },
       });
     }
 
@@ -1139,11 +1145,31 @@ const getSearchAndFilterWallpapers = async (req, res) => {
     }
 
     if (tn?.toLowerCase() === "trending") {
-      if (sort_by.toLowerCase() !== "views") {
-        sort["view"] = -1;
+      const trendingRes = await getLatestTrendingWallpaperIds();
+      if (trendingRes.success) {
+        const trendingIds = trendingRes.data;
+        pipeline[0].$match.$and.push({
+          _id: { $in: trendingIds },
+        });
       }
+      sort["view"] = -1;
+      sort["createdAt"] = -1;
+      // if (sort_by.toLowerCase() !== "views") {
+      //   sort["view"] = -1;
+      // }
     } else if (tn?.toLowerCase() === "top wallpapers") {
       const topWallPipeline = [
+        {
+          $addFields: {
+            totalDownloads: {
+              $cond: {
+                if: { $isArray: "$downloads" },
+                then: { $size: "$downloads" },
+                else: 0,
+              },
+            },
+          },
+        },
         {
           $lookup: {
             from: "favorites",
@@ -1162,8 +1188,9 @@ const getSearchAndFilterWallpapers = async (req, res) => {
         },
       ];
 
+      sort["totalDownloads"] = -1;
       sort["totalFavorites"] = -1;
-      sort["view"] = -1;
+      // sort["view"] = -1;
 
       pipeline.push(...topWallPipeline);
     } else if (tn?.toLowerCase() === "new") {
@@ -1212,13 +1239,12 @@ const getSearchAndFilterWallpapers = async (req, res) => {
     const totalResult = await Wallpaper.aggregate(totalPipeline);
     const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
-    pipeline.push(
-      { $sort: sort },
-      { $skip: (page - 1) * limit },
-      { $limit: limit }
-    );
+    if (Object.entries(sort).length > 0) {
+      pipeline.push({ $sort: sort });
+    }
+    pipeline.push({ $skip: (page - 1) * limit }, { $limit: limit });
 
-    // console.log("Match: ", pipeline[0].$match, "Sort: ", sort);
+    // console.log("Match: ", pipeline, "Sort: ", sort);
 
     let results = await Wallpaper.aggregate(pipeline);
 

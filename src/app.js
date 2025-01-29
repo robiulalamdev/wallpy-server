@@ -8,6 +8,10 @@ const http = require("http");
 const { getResizeImage } = require("./modules/helper/helper.controller");
 const requestIp = require("request-ip");
 const { initializeSocket } = require("./config/socket/socketServer");
+const cron = require("node-cron");
+const {
+  generateTrendingWallpapers,
+} = require("./modules/trending/trending.service");
 
 // middleware
 // app.use(
@@ -38,6 +42,19 @@ app.get("/api/v1/assets", getResizeImage);
 // app.use(express.static(path.join(__dirname, "client/dist")));
 // app.get("*", (req, res) => {
 //   res.sendFile(path.join(__dirname, "client/dist", "index.html"));
+// });
+
+// Schedule the task to run every day at midnight (00:00)
+cron.schedule("0 0 * * *", async () => {
+  console.log("Running daily trending wallpapers update...");
+  await generateTrendingWallpapers();
+});
+
+// Run every **1 minute** for testing
+// cron.schedule("*/1 * * * *", async () => {
+//   console.log("Running trending wallpapers update...");
+//   const result = await generateTrendingWallpapers();
+//   console.log(result);
 // });
 
 module.exports = { app, Server };
