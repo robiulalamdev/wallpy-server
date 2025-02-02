@@ -24,6 +24,8 @@ const VARIABLES = {
   SENDRID_MAIL: process.env.SENDGRID_MAIL,
   CONTACT_MAIL: process.env.CONTACT_MAIL,
   SENDGRID_KEY: process.env.SENDGRID_KEY,
+
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
 };
 
 module.exports = VARIABLES;

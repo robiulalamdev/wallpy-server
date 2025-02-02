@@ -12,6 +12,7 @@ const cron = require("node-cron");
 const {
   generateTrendingWallpapers,
 } = require("./modules/trending/trending.service");
+const { generateAIAssistantMessage } = require("./config/ai/openai");
 
 // middleware
 // app.use(
@@ -56,5 +57,19 @@ cron.schedule("0 0 * * *", async () => {
 //   const result = await generateTrendingWallpapers();
 //   console.log(result);
 // });
+
+app.get("/wps/:prompt", async (req, res) => {
+  if (req.params.prompt) {
+    const result = await generateAIAssistantMessage([
+      {
+        role: "user",
+        content: req.params.prompt,
+      },
+    ]);
+    res.send(result);
+  } else {
+    res.send("Provide a prompt");
+  }
+});
 
 module.exports = { app, Server };
