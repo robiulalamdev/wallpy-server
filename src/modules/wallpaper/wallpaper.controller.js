@@ -1158,18 +1158,39 @@ const getSearchAndFilterWallpapers = async (req, res) => {
       //   sort["view"] = -1;
       // }
     } else if (tn?.toLowerCase() === "top wallpapers") {
-      const topWallPipeline = [
-        {
-          $addFields: {
-            totalDownloads: {
-              $cond: {
-                if: { $isArray: "$downloads" },
-                then: { $size: "$downloads" },
-                else: 0,
-              },
-            },
-          },
-        },
+      // const topWallPipeline = [
+      //   {
+      //     $lookup: {
+      //       from: "favorites",
+      //       localField: "_id",
+      //       foreignField: "wallpaper",
+      //       as: "favorites",
+      //     },
+      //   },
+      //   {
+      //     $addFields: {
+      //       totalFavorites: { $size: "$favorites" },
+      //     },
+      //   },
+      //   {
+      //     $unset: "favorites",
+      //   },
+      // ];
+
+      sort["view"] = -1;
+      // sort["totalFavorites"] = -1;
+
+      // pipeline.push(...topWallPipeline);
+    } else if (tn?.toLowerCase() === "new") {
+      sort["createdAt"] = -1;
+    }
+
+    // sort_by -> Random, Views, Favorites
+    if (sort_by && sort_by.toLowerCase() === "views") {
+      sort["view"] = sort_order;
+    } else if (sort_by?.toLowerCase() === "favorites") {
+      // if (tn?.toLowerCase() !== "top wallpapers") {
+      const sortByFavoritePipeline = [
         {
           $lookup: {
             from: "favorites",
@@ -1187,44 +1208,11 @@ const getSearchAndFilterWallpapers = async (req, res) => {
           $unset: "favorites",
         },
       ];
-
-      sort["totalDownloads"] = -1;
-      sort["totalFavorites"] = -1;
-      // sort["view"] = -1;
-
-      pipeline.push(...topWallPipeline);
-    } else if (tn?.toLowerCase() === "new") {
-      sort["createdAt"] = -1;
-    }
-
-    // sort_by -> Random, Views, Favorites
-    if (sort_by && sort_by.toLowerCase() === "views") {
-      sort["view"] = sort_order;
-    } else if (sort_by?.toLowerCase() === "favorites") {
-      if (tn?.toLowerCase() !== "top wallpapers") {
-        const sortByFavoritePipeline = [
-          {
-            $lookup: {
-              from: "favorites",
-              localField: "_id",
-              foreignField: "wallpaper",
-              as: "favorites",
-            },
-          },
-          {
-            $addFields: {
-              totalFavorites: { $size: "$favorites" },
-            },
-          },
-          {
-            $unset: "favorites",
-          },
-        ];
-        pipeline.push(...sortByFavoritePipeline);
-        sort["totalFavorites"] = sort_order;
-      } else {
-        sort["totalFavorites"] = sort_order;
-      }
+      pipeline.push(...sortByFavoritePipeline);
+      sort["totalFavorites"] = sort_order;
+      // } else {
+      //   sort["totalFavorites"] = sort_order;
+      // }
     }
 
     if (orPipeline.length > 0) {
