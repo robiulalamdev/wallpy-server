@@ -70,6 +70,11 @@ const wallpaperSchema = new Schema(
       default: 0,
       required: true,
     },
+    views: {
+      type: [Date],
+      default: [],
+      required: false,
+    },
     totalReports: {
       type: Number,
       default: 0,

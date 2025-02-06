@@ -913,7 +913,7 @@ const addNewViewById = async (req, res) => {
   try {
     const result = await Wallpaper.updateOne(
       { _id: req.params.wallpaperId },
-      { $inc: { view: 1 } }
+      { $inc: { view: 1 }, $push: { views: new Date() } }
     );
     res.status(200).json({
       status: 200,
@@ -1153,7 +1153,7 @@ const getSearchAndFilterWallpapers = async (req, res) => {
         });
       }
       sort["view"] = -1;
-      sort["createdAt"] = -1;
+      // sort["createdAt"] = -1;
       // if (sort_by.toLowerCase() !== "views") {
       //   sort["view"] = -1;
       // }
