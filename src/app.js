@@ -46,8 +46,10 @@ app.get("/api/v1/assets", getResizeImage);
 
 // Schedule the task to run every day at midnight (00:00)
 cron.schedule("0 0 * * *", async () => {
-  console.log("Running daily trending wallpapers update...");
-  await generateTrendingWallpapers();
+  setTimeout(async () => {
+    console.log("Running daily trending wallpapers update at 00:01...");
+    await generateTrendingWallpapers();
+  }, 60 * 1000); // 1-minute delay
 });
 
 // Run every **1 minute** for testing
