@@ -54,9 +54,6 @@ cron.schedule("0 0 * * *", async () => {
 
 // Run every **1 minute** for testing
 // cron.schedule("*/1 * * * *", async () => {
-//   console.log("Running trending wallpapers update...");
-//   const result = await generateTrendingWallpapers();
-//   console.log(result);
 // });
 
 module.exports = { app, Server };
