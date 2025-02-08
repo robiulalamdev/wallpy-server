@@ -1,3 +1,3 @@
 # The Wallpaper Society
 
-# Version : v5.0.2
+# Version : v6.0.0
